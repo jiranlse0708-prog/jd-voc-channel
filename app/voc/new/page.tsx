@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import type { FormEvent, DragEvent, ChangeEvent, KeyboardEvent } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 /* ── 상수 ── */
 const PRODUCTS = ['SERVERFILTER', 'IDFILTER'] as const
@@ -120,8 +121,13 @@ export default function VocNewPage() {
   const [isDragging, setIsDragging] = useState(false)
 
   /* 검증 */
-  const [errors,  setErrors]  = useState<Errors>({})
+  const [errors,      setErrors]      = useState<Errors>({})
 
+  /* 제출 상태 */
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError,  setSubmitError]  = useState<string | null>(null)
+
+  const router       = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const lsLoaded     = useRef(false) // 로컬스토리지 로드 완료 여부
 
@@ -219,13 +225,13 @@ export default function VocNewPage() {
   }
 
   /* ── 제출 ── */
-  const onSubmit = (e: FormEvent) => {
+  const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
+
+    // 클라이언트 검증
     const errs = validate()
     setErrors(prev => ({ ...prev, ...errs }))
-
     if (Object.keys(errs).length > 0) {
-      // 첫 번째 에러 필드로 스크롤
       requestAnimationFrame(() => {
         const first = document.querySelector<HTMLElement>('.invalid, [data-error-target]')
         first?.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -233,14 +239,38 @@ export default function VocNewPage() {
       return
     }
 
-    console.log('[VOC 접수 데이터]', {
-      requester:   { dept, name, email },
-      classification: { product, vocType, priority },
-      summary:     { summary, customer },
-      detail:      { purpose, screenPath, detail },
-      meta:        { dueDate },
-      attachments: files.map(f => ({ name: f.name, size: f.size, type: f.type })),
-    })
+    // API 호출
+    setIsSubmitting(true)
+    setSubmitError(null)
+
+    try {
+      const fd = new FormData()
+      fd.append('dept',       dept)
+      fd.append('name',       name)
+      fd.append('email',      email)
+      fd.append('product',    product)
+      fd.append('vocType',    vocType)
+      fd.append('summary',    summary)
+      fd.append('customer',   customer)
+      fd.append('priority',   priority)
+      fd.append('purpose',    purpose)
+      fd.append('screenPath', screenPath)
+      fd.append('detail',     detail)
+      fd.append('dueDate',    dueDate)
+      files.forEach(f => fd.append('files', f))
+
+      const res  = await fetch('/api/voc', { method: 'POST', body: fd })
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error ?? '접수 중 오류가 발생했습니다.')
+      }
+
+      router.push(`/voc/complete?id=${data.id}&token=${data.viewToken}`)
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
+      setIsSubmitting(false)
+    }
   }
 
   /* ── 렌더 ── */
@@ -546,15 +576,42 @@ export default function VocNewPage() {
           </div>
 
           {/* ══ 하단 버튼 ══ */}
+          {submitError && (
+            <div className="field-error" style={{ justifyContent: 'center', padding: '10px 14px', background: 'var(--danger-50)', borderRadius: 'var(--r-md)', border: '1px solid var(--danger-100)' }}>
+              <svg width="14" height="14" viewBox="0 0 12 12" fill="none">
+                <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.4"/>
+                <path d="M6 3.5v3M6 8.2v.3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+              </svg>
+              {submitError}
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2 pb-4">
             <Link href="/" className="btn btn-ghost btn-lg" style={{ justifyContent: 'center' }}>
               취소
             </Link>
-            <button type="submit" className="btn btn-primary btn-lg">
-              <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
-                <path d="M3 8l3.5 3.5 6.5-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              VOC 접수하기
+            <button
+              type="submit"
+              className="btn btn-primary btn-lg"
+              disabled={isSubmitting}
+              style={{ minWidth: 140 }}
+            >
+              {isSubmitting ? (
+                <>
+                  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style={{ animation: 'spin 1s linear infinite' }}>
+                    <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.8" strokeOpacity="0.3"/>
+                    <path d="M8 2a6 6 0 016 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                  </svg>
+                  접수 중…
+                </>
+              ) : (
+                <>
+                  <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                    <path d="M3 8l3.5 3.5 6.5-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  VOC 접수하기
+                </>
+              )}
             </button>
           </div>
 

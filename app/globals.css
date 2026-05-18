@@ -331,3 +331,8 @@ body {
 @media (min-width: 768px) {
   .btn-full { width: auto; }
 }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
