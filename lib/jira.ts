@@ -216,7 +216,7 @@ export async function addJiraAttachment(
 
   await withRetry(async () => {
     const form = new FormData()
-    form.append('file', new Blob([buffer], { type: mimeType }), fileName)
+    form.append('file', new Blob([new Uint8Array(buffer)], { type: mimeType }), fileName)
 
     const res = await fetch(apiUrl(`/issue/${issueKey}/attachments`), {
       method:  'POST',
