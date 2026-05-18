@@ -1,11 +1,11 @@
 import Link from 'next/link'
 
 interface Props {
-  searchParams: Promise<{ id?: string; token?: string }>
+  searchParams: Promise<{ id?: string; token?: string; jira?: string }>
 }
 
 export default async function CompletePage({ searchParams }: Props) {
-  const { id, token } = await searchParams
+  const { id, token, jira } = await searchParams
 
   /* 잘못된 접근 처리 */
   if (!id || !token) {
@@ -100,6 +100,30 @@ export default async function CompletePage({ searchParams }: Props) {
                 </div>
               </div>
             </div>
+
+            {/* JIRA 이슈 키 */}
+            {jira && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 16, borderBottom: '1px solid var(--surface-border)' }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: 10,
+                  background: 'var(--brand-50)', border: '1px solid var(--brand-100)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: 'var(--brand-600)', flexShrink: 0,
+                }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" fill="currentColor"/>
+                  </svg>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, color: 'var(--text-subtle)', fontFamily: 'var(--font-mono)', marginBottom: 2 }}>
+                    JIRA 이슈
+                  </div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-strong)', fontFamily: 'var(--font-mono)' }}>
+                    {jira}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* 진행 상황 조회 링크 */}
             <div>

@@ -16,10 +16,10 @@ const VOC_TYPES = [
 ] as const
 
 const PRIORITIES = [
-  { value: '최상', desc: '당장 개발 진행이 필요한 급 건' },
-  { value: '상',   desc: '고객과 약속된 기한이 있는 건' },
-  { value: '중',   desc: '정해진 기한이 없는 일반 건' },
-  { value: '하',   desc: '개발되면 좋지만 현재도 무방' },
+  { value: 'highest', label: '최상', desc: '당장 개발 진행이 필요한 급 건' },
+  { value: 'high',    label: '상',   desc: '고객과 약속된 기한이 있는 건' },
+  { value: 'medium',  label: '중',   desc: '정해진 기한이 없는 일반 건' },
+  { value: 'low',     label: '하',   desc: '개발되면 좋지만 현재도 무방' },
 ] as const
 
 const MAX_FILE_BYTES  = 50  * 1024 * 1024 // 50 MB
@@ -108,7 +108,7 @@ export default function VocNewPage() {
   /* 내용 요약 */
   const [summary,  setSummary]  = useState('')
   const [customer, setCustomer] = useState('')
-  const [priority, setPriority] = useState('중')
+  const [priority, setPriority] = useState('medium')
 
   /* 상세 */
   const [purpose,    setPurpose]    = useState('')
@@ -266,7 +266,8 @@ export default function VocNewPage() {
         throw new Error(data.error ?? '접수 중 오류가 발생했습니다.')
       }
 
-      router.push(`/voc/complete?id=${data.id}&token=${data.viewToken}`)
+      const jiraParam = data.jiraKey ? `&jira=${data.jiraKey}` : ''
+      router.push(`/voc/complete?id=${data.id}&token=${data.viewToken}${jiraParam}`)
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
       setIsSubmitting(false)
@@ -431,7 +432,7 @@ export default function VocNewPage() {
                   onChange={e => setPriority(e.target.value)}
                 >
                   {PRIORITIES.map(p => (
-                    <option key={p.value} value={p.value}>{p.value} — {p.desc}</option>
+                    <option key={p.value} value={p.value}>{p.label} — {p.desc}</option>
                   ))}
                 </select>
               </div>

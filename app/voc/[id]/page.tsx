@@ -1,0 +1,244 @@
+import Link from 'next/link'
+import { notFound } from 'next/navigation'
+import { createAdminClient } from '@/lib/supabase-server'
+import { VOC_TYPE_LABEL, PRIORITY_LABEL } from '@/lib/mapping'
+
+const BUCKET = 'voc-attachments'
+
+/* ─── 타입 ─── */
+interface Attachment { name: string; size: number; type: string; path: string }
+interface Comment    { author: string; body: string; created_at: string }
+interface VocRow {
+  id:              number
+  view_token:      string
+  requester_dept:  string
+  requester_name:  string
+  requester_email: string | null
+  product:         string
+  voc_type:        string
+  summary:         string
+  customer:        string | null
+  priority:        string
+  purpose:         string
+  screen_path:     string
+  detail:          string
+  due_date:        string | null
+  attachments:     Attachment[]
+  current_status:  string
+  jira_issue_key:  string | null
+  comments:        Comment[] | null
+  created_at:      string
+}
+
+/* ─── 상태 표시 매핑 ─── */
+const STATUS: Record<string, { cls: string; label: string }> = {
+  '접수됨': { cls: 'status-received', label: '접수됨' },
+  '처리중': { cls: 'status-progress', label: '처리중' },
+  '완료':   { cls: 'status-done',     label: '완료' },
+  '보류':   { cls: 'status-hold',     label: '보류' },
+  '반려':   { cls: 'status-deleted',  label: '반려' },
+}
+
+/* ─── 유틸 ─── */
+function fmtSize(b: number) {
+  if (b < 1024) return `${b} B`
+  if (b < 1024 * 1024) return `${(b / 1024).toFixed(0)} KB`
+  return `${(b / 1024 / 1024).toFixed(1)} MB`
+}
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleString('ko-KR', {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit',
+  })
+}
+
+/* ─── 섹션 헤더 ─── */
+function SectionLabel({ children }: { children: string }) {
+  return (
+    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-subtle)', marginBottom: 12 }}>
+      {children}
+    </div>
+  )
+}
+
+/* ─── 필드 행 ─── */
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <span style={{ fontSize: 11, color: 'var(--text-subtle)', fontWeight: 600 }}>{label}</span>
+      <span style={{ fontSize: 14, color: 'var(--text-strong)', lineHeight: 1.5 }}>{children}</span>
+    </div>
+  )
+}
+
+/* ─── 페이지 ─── */
+interface Props {
+  params:       Promise<{ id: string }>
+  searchParams: Promise<{ token?: string }>
+}
+
+export default async function VocViewPage({ params, searchParams }: Props) {
+  const { id }    = await params
+  const { token } = await searchParams
+  const numId     = Number(id)
+
+  if (!token || isNaN(numId)) notFound()
+
+  const supabase = createAdminClient()
+  const { data, error } = await supabase
+    .from('voc_submission')
+    .select('*')
+    .eq('id', numId)
+    .single()
+
+  if (error || !data) notFound()
+
+  const row = data as VocRow
+  if (row.view_token !== token) notFound()
+
+  /* 첨부파일 서명 URL 생성 */
+  const signedAttachments = await Promise.all(
+    (row.attachments ?? []).map(async (a) => {
+      const { data: url } = await supabase.storage
+        .from(BUCKET)
+        .createSignedUrl(a.path, 3600)
+      return { ...a, signedUrl: url?.signedUrl ?? null }
+    })
+  )
+
+  const status   = STATUS[row.current_status] ?? { cls: 'status-received', label: row.current_status }
+  const comments = row.comments ?? []
+  const jiraHost = process.env.JIRA_HOST?.replace(/\/$/, '')
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      {/* ─── Topbar ─── */}
+      <header className="topbar">
+        <Link href="/" className="topbar-brand" style={{ textDecoration: 'none' }}>
+          <div className="logo">V</div>
+          <span>VOC 접수 채널</span>
+        </Link>
+      </header>
+
+      {/* ─── 본문 ─── */}
+      <main className="flex-1" style={{ background: 'var(--surface-canvas)', padding: '32px 16px 80px' }}>
+        <div className="page-container" style={{ width: '100%' }}>
+
+          {/* 헤더 */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 24 }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: 'var(--text-strong)' }}>
+                  VOC <span style={{ fontFamily: 'var(--font-mono)' }}>#{row.id}</span>
+                </h1>
+                <span className={`status ${status.cls}`}>
+                  <span className="dot" />
+                  {status.label}
+                </span>
+                {row.jira_issue_key && jiraHost && (
+                  <a
+                    href={`${jiraHost}/browse/${row.jira_issue_key}`}
+                    target="_blank" rel="noopener noreferrer"
+                    style={{ fontSize: 12, color: 'var(--brand-600)', fontFamily: 'var(--font-mono)', textDecoration: 'none', background: 'var(--brand-50)', border: '1px solid var(--brand-100)', borderRadius: 6, padding: '3px 8px' }}
+                  >
+                    {row.jira_issue_key} ↗
+                  </a>
+                )}
+              </div>
+              <p style={{ margin: '6px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>
+                접수일: {fmtDate(row.created_at)}
+              </p>
+            </div>
+            <Link href="/voc/new" className="btn btn-primary btn-sm">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+              새 VOC 접수
+            </Link>
+          </div>
+
+          {/* ─── 접수 정보 ─── */}
+          <div className="card" style={{ marginBottom: 16 }}>
+            <SectionLabel>접수 정보</SectionLabel>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(160px,1fr))', gap: 16 }}>
+              <Field label="부서">{row.requester_dept}</Field>
+              <Field label="접수자">{row.requester_name}</Field>
+              {row.requester_email && <Field label="이메일">{row.requester_email}</Field>}
+            </div>
+          </div>
+
+          {/* ─── 요청 정보 ─── */}
+          <div className="card" style={{ marginBottom: 16 }}>
+            <SectionLabel>요청 정보</SectionLabel>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(160px,1fr))', gap: 16, marginBottom: 16 }}>
+              <Field label="제품">{row.product}</Field>
+              <Field label="VOC 유형">
+                <span className={`cat cat-${row.voc_type}`}>
+                  {VOC_TYPE_LABEL[row.voc_type] ?? row.voc_type}
+                </span>
+              </Field>
+              {row.customer && <Field label="고객사">{row.customer}</Field>}
+              <Field label="우선순위">{PRIORITY_LABEL[row.priority] ?? row.priority}</Field>
+              {row.due_date && <Field label="요청 기한">{row.due_date}</Field>}
+            </div>
+            <div style={{ borderTop: '1px solid var(--surface-border)', paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <Field label="요약">{row.summary}</Field>
+              <Field label="목적/배경">
+                <span style={{ whiteSpace: 'pre-wrap' }}>{row.purpose}</span>
+              </Field>
+              <Field label="화면 경로">{row.screen_path}</Field>
+              <Field label="상세 내용">
+                <span style={{ whiteSpace: 'pre-wrap' }}>{row.detail}</span>
+              </Field>
+            </div>
+          </div>
+
+          {/* ─── 첨부파일 ─── */}
+          {signedAttachments.length > 0 && (
+            <div className="card" style={{ marginBottom: 16 }}>
+              <SectionLabel>첨부파일</SectionLabel>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {signedAttachments.map((a, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', background: 'var(--surface-canvas)', border: '1px solid var(--surface-border)', borderRadius: 'var(--r-md)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+                        <rect x="2" y="1" width="12" height="14" rx="2" stroke="currentColor" strokeWidth="1.4" />
+                        <path d="M5 5h6M5 8h6M5 11h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                      </svg>
+                      <span style={{ fontSize: 13, color: 'var(--text-strong)' }}>{a.name}</span>
+                      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{fmtSize(a.size)}</span>
+                    </div>
+                    {a.signedUrl && (
+                      <a href={a.signedUrl} download={a.name} className="btn btn-sm btn-secondary" style={{ flexShrink: 0 }}>
+                        다운로드
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ─── 처리 이력 / 댓글 ─── */}
+          {comments.length > 0 && (
+            <div className="card">
+              <SectionLabel>담당자 코멘트</SectionLabel>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {comments.map((c, i) => (
+                  <div key={i} style={{ padding: '12px 14px', background: 'var(--surface-canvas)', border: '1px solid var(--surface-border)', borderLeft: '3px solid var(--brand-400)', borderRadius: 'var(--r-md)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--brand-700)' }}>{c.author}</span>
+                      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{fmtDate(c.created_at)}</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: 14, color: 'var(--text-strong)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{c.body}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+        </div>
+      </main>
+    </div>
+  )
+}
