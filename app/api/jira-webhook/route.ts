@@ -88,24 +88,16 @@ export async function POST(req: NextRequest) {
     const createdAt  = (comment?.created as string) ?? new Date().toISOString()
 
     /* DB comments 배열에 추가 */
-    await supabase.rpc('append_voc_comment', {
-      p_id:        row.id,
-      p_author:    author,
-      p_body:      bodyText,
-      p_created_at: createdAt,
-    }).catch(async () => {
-      /* RPC 없으면 select → update fallback */
-      const { data: cur } = await supabase
-        .from('voc_submission')
-        .select('comments')
-        .eq('id', row.id)
-        .single()
-      const existing = (cur?.comments as unknown[]) ?? []
-      await supabase
-        .from('voc_submission')
-        .update({ comments: [...existing, { author, body: bodyText, created_at: createdAt }] })
-        .eq('id', row.id)
-    })
+    const { data: cur } = await supabase
+      .from('voc_submission')
+      .select('comments')
+      .eq('id', row.id)
+      .single()
+    const existing = (cur?.comments as unknown[]) ?? []
+    await supabase
+      .from('voc_submission')
+      .update({ comments: [...existing, { author, body: bodyText, created_at: createdAt }] })
+      .eq('id', row.id)
 
     /* 이메일 발송 */
     if (row.requester_email) {
