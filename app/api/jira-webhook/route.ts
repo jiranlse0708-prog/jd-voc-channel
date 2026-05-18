@@ -54,8 +54,8 @@ export async function POST(req: NextRequest) {
     const statusItem = items.find(i => i.field === 'status')
 
     if (statusItem) {
-      const newStatus = (statusItem.toString as string) ?? ''
-      const oldStatus = (statusItem.fromString as string) ?? ''
+      const newStatus = (statusItem['toString'] as string) ?? ''
+      const oldStatus = (statusItem['fromString'] as string) ?? ''
       const changedBy = ((payload.user as Record<string, unknown>)?.displayName as string) ?? '담당자'
 
       /* DB 업데이트 */
