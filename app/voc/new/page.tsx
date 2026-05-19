@@ -714,10 +714,6 @@ export default function VocNewPage() {
             {/* 참고 화면 */}
             <div>
               <label className="field-label">참고 화면</label>
-              <p className="field-help" style={{ marginTop: 0, marginBottom: 8 }}>
-                화면 캡쳐본, 고객사 요청 원본 등 이해에 도움이 될만한 자료를 올려주세요.
-              </p>
-
               <div
                 className={`dropzone${isDragging ? ' active' : ''}`}
                 onDragOver={onDragOver}
@@ -769,6 +765,10 @@ export default function VocNewPage() {
                 onChange={onFileChange}
                 style={{ display: 'none' }}
               />
+
+              <p className="field-help">
+                화면 캡쳐본, 고객사 요청 원본 등 이해에 도움이 될만한 자료를 올려주세요.
+              </p>
 
               {/* 파일 에러 */}
               <FieldError msg={errors.files} />
