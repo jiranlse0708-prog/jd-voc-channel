@@ -89,7 +89,6 @@ export default async function CompletePage({ searchParams }: Props) {
                   rel="noopener noreferrer"
                   style={{
                     display: 'flex', alignItems: 'center', gap: 12,
-                    paddingBottom: 16, borderBottom: '1px solid var(--surface-border)',
                     textDecoration: 'none', color: 'inherit',
                   }}
                 >
@@ -116,7 +115,7 @@ export default async function CompletePage({ searchParams }: Props) {
                   </svg>
                 </a>
               ) : (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 16, borderBottom: '1px solid var(--surface-border)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{
                     width: 40, height: 40, borderRadius: 10,
                     background: 'var(--brand-50)', border: '1px solid var(--brand-100)',
