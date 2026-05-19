@@ -96,6 +96,37 @@ export async function sendStatusChanged(params: {
   })
 }
 
+/* ─── 4. 조회 링크 재발송 ─── */
+export async function sendVocLookupLinks(params: {
+  to:    string
+  items: { id: number; token: string; summary: string; status: string; createdAt: string }[]
+}) {
+  const rows = params.items.map(it => {
+    const url = `${SITE()}/voc/${it.id}?token=${it.token}`
+    const date = new Date(it.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' })
+    return `<tr>
+      <td style="padding:12px 0;border-bottom:1px solid #f3f4f6;font-size:13px;color:#111827;">
+        <a href="${url}" style="color:#F78121;text-decoration:none;font-weight:600;">#${it.id} ${it.summary}</a>
+        <div style="margin-top:4px;font-size:12px;color:#6b7280;">${date} · ${it.status}</div>
+      </td>
+    </tr>`
+  }).join('')
+
+  const body = `
+    <h2 style="margin:0 0 4px;font-size:20px;color:#111827;">접수하신 VOC 조회 링크입니다</h2>
+    <p style="margin:0 0 20px;font-size:14px;color:#6b7280;">총 ${params.items.length}건의 접수 내역을 확인하실 수 있습니다.</p>
+    <table cellpadding="0" cellspacing="0" style="width:100%;border-top:1px solid #e5e7eb;">
+      ${rows}
+    </table>
+    <p style="margin:20px 0 0;font-size:12px;color:#6b7280;">본인 외 타인에게 링크가 공유되지 않도록 주의해 주세요.</p>
+  `
+  return getResend().emails.send({
+    from: FROM(), to: params.to,
+    subject: `[VOC] 접수 조회 링크 (${params.items.length}건)`,
+    html: wrap('VOC 조회 링크', body),
+  })
+}
+
 /* ─── 3. 댓글 알림 ─── */
 export async function sendCommentAdded(params: {
   to:          string

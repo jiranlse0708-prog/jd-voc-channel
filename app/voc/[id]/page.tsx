@@ -122,7 +122,7 @@ export default async function VocViewPage({ params, searchParams }: Props) {
 
       {/* ─── 본문 ─── */}
       <main className="flex-1" style={{ background: 'var(--surface-canvas)', padding: '32px 16px 80px' }}>
-        <div className="page-container" style={{ width: '100%' }}>
+        <div className="page-container-wide" style={{ width: '100%', maxWidth: 880 }}>
 
           {/* 헤더 */}
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 24 }}>

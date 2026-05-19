@@ -26,9 +26,10 @@ const MAX_FILE_BYTES  = 50  * 1024 * 1024 // 50 MB
 const MAX_TOTAL_BYTES = 200 * 1024 * 1024 // 200 MB
 
 const LS = {
-  dept:  'voc.requester.dept',
-  name:  'voc.requester.name',
-  email: 'voc.requester.email',
+  dept:     'voc.requester.dept',
+  name:     'voc.requester.name',
+  email:    'voc.requester.email',
+  remember: 'voc.requester.remember',
 } as const
 
 /* ── 타입 ── */
@@ -127,22 +128,57 @@ export default function VocNewPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError,  setSubmitError]  = useState<string | null>(null)
 
+  /* 로컬 저장 동의 (기본 ON) */
+  const [remember, setRemember] = useState(true)
+
   const router       = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const lsLoaded     = useRef(false) // 로컬스토리지 로드 완료 여부
 
   /* ── 로컬스토리지 불러오기 (마운트 시 1회) ── */
   useEffect(() => {
-    setDept(localStorage.getItem(LS.dept)  ?? '')
-    setName(localStorage.getItem(LS.name)  ?? '')
-    setEmail(localStorage.getItem(LS.email) ?? '')
+    /* remember는 기본 ON, 명시적으로 '0'으로 저장된 경우만 OFF */
+    const rememberRaw = localStorage.getItem(LS.remember)
+    const rememberOn  = rememberRaw !== '0'
+    setRemember(rememberOn)
+    if (rememberOn) {
+      setDept(localStorage.getItem(LS.dept)  ?? '')
+      setName(localStorage.getItem(LS.name)  ?? '')
+      setEmail(localStorage.getItem(LS.email) ?? '')
+    }
     lsLoaded.current = true
   }, [])
 
-  /* ── 로컬스토리지 저장 (로드 후 변경 시) ── */
-  useEffect(() => { if (lsLoaded.current) localStorage.setItem(LS.dept,  dept)  }, [dept])
-  useEffect(() => { if (lsLoaded.current) localStorage.setItem(LS.name,  name)  }, [name])
-  useEffect(() => { if (lsLoaded.current) localStorage.setItem(LS.email, email) }, [email])
+  /* ── 로컬스토리지 저장 (remember ON일 때만) ── */
+  useEffect(() => { if (lsLoaded.current && remember) localStorage.setItem(LS.dept,  dept)  }, [dept,  remember])
+  useEffect(() => { if (lsLoaded.current && remember) localStorage.setItem(LS.name,  name)  }, [name,  remember])
+  useEffect(() => { if (lsLoaded.current && remember) localStorage.setItem(LS.email, email) }, [email, remember])
+
+  /* ── remember 토글 시: OFF로 바뀌면 즉시 저장값 삭제, ON으로 바뀌면 현재 값 기록 ── */
+  useEffect(() => {
+    if (!lsLoaded.current) return
+    if (remember) {
+      localStorage.setItem(LS.remember, '1')
+      localStorage.setItem(LS.dept,  dept)
+      localStorage.setItem(LS.name,  name)
+      localStorage.setItem(LS.email, email)
+    } else {
+      localStorage.setItem(LS.remember, '0')
+      localStorage.removeItem(LS.dept)
+      localStorage.removeItem(LS.name)
+      localStorage.removeItem(LS.email)
+    }
+  }, [remember]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* ── 저장된 정보 지우기 (입력값도 비움) ── */
+  const clearStoredRequester = () => {
+    localStorage.removeItem(LS.dept)
+    localStorage.removeItem(LS.name)
+    localStorage.removeItem(LS.email)
+    setDept('')
+    setName('')
+    setEmail('')
+  }
 
   /* ── 클립보드 붙여넣기 ── */
   useEffect(() => {
@@ -344,6 +380,36 @@ export default function VocNewPage() {
                 : <p className="field-help">이메일을 입력하시면 접수 상태 변경 알림을 받을 수 있어요.</p>
               }
             </div>
+
+            {/* 자동 저장 동의 */}
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              gap: 12, paddingTop: 12, borderTop: '1px solid var(--surface-border)',
+              flexWrap: 'wrap',
+            }}>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, color: 'var(--text-default)' }}>
+                <span
+                  className={`check${remember ? ' on' : ''}`}
+                  onClick={(e) => { e.preventDefault(); setRemember(v => !v) }}
+                  role="checkbox"
+                  aria-checked={remember}
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setRemember(v => !v) } }}
+                />
+                이 브라우저에 부서·이름·이메일 기억하기
+              </label>
+              <button
+                type="button"
+                onClick={clearStoredRequester}
+                style={{
+                  fontSize: 12, color: 'var(--text-muted)', background: 'none',
+                  border: 0, padding: 0, cursor: 'pointer', textDecoration: 'underline',
+                  fontFamily: 'inherit',
+                }}
+              >
+                저장된 정보 지우기
+              </button>
+            </div>
           </div>
 
           {/* ══ 2. 분류 ══ */}
@@ -353,14 +419,31 @@ export default function VocNewPage() {
             {/* 제품 */}
             <div>
               <label className="field-label">제품<span className="req">*</span></label>
-              <select
-                className={`select${errors.product ? ' invalid' : ''}`}
-                value={product}
-                onChange={e => { setProduct(e.target.value); setErrors(p => { const { product: _, ...r } = p; return r }) }}
-              >
-                <option value="" disabled>제품을 선택하세요</option>
-                {PRODUCTS.map(p => <option key={p} value={p}>{p}</option>)}
-              </select>
+              <div className="grid grid-cols-2 gap-2" data-error-target={errors.product ? 'true' : undefined}>
+                {PRODUCTS.map(p => (
+                  <div
+                    key={p}
+                    className={`radio-card${product === p ? ' selected' : ''}`}
+                    style={errors.product && product !== p ? { borderColor: 'var(--danger-500)' } : undefined}
+                    onClick={() => { setProduct(p); setErrors(prev => { const { product: _, ...r } = prev; return r }) }}
+                    role="radio"
+                    aria-checked={product === p}
+                    tabIndex={0}
+                    onKeyDown={(e: KeyboardEvent) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        setProduct(p)
+                        setErrors(prev => { const { product: _, ...r } = prev; return r })
+                      }
+                    }}
+                  >
+                    <span className="radio-dot" />
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-strong)', fontFamily: 'var(--font-mono)' }}>
+                      {p}
+                    </div>
+                  </div>
+                ))}
+              </div>
               <FieldError msg={errors.product} />
             </div>
 
@@ -432,9 +515,12 @@ export default function VocNewPage() {
                   onChange={e => setPriority(e.target.value)}
                 >
                   {PRIORITIES.map(p => (
-                    <option key={p.value} value={p.value}>{p.label} — {p.desc}</option>
+                    <option key={p.value} value={p.value}>{p.label}</option>
                   ))}
                 </select>
+                <p className="field-help">
+                  {PRIORITIES.find(p => p.value === priority)?.desc}
+                </p>
               </div>
             </div>
           </div>
