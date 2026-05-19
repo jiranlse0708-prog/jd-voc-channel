@@ -102,10 +102,10 @@ export function buildAdfDescription(p: JiraIssueParams): AdfNode {
     rule(),
 
     heading(1, '요청 내용'),
-    heading(2, '목적/배경'),
-    para(p.purpose),
     heading(2, '화면 경로'),
     para(p.screenPath),
+    heading(2, '목적/배경'),
+    para(p.purpose),
     heading(2, '상세 내용'),
     para(p.detail),
     heading(2, '요청 기한'),
