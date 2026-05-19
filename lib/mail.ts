@@ -3,7 +3,7 @@ import { Resend } from 'resend'
 function getResend() {
   return new Resend(process.env.RESEND_API_KEY)
 }
-const FROM = () => process.env.EMAIL_FROM ?? 'VOC 접수 채널 <noreply@example.com>'
+const FROM = () => process.env.EMAIL_FROM ?? '서버솔루션팀 VOC 채널 <noreply@example.com>'
 const SITE = () => (process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 
 /* ─── 공통 HTML 래퍼 ─── */
@@ -16,7 +16,7 @@ function wrap(title: string, body: string) {
 <tr><td align="center">
 <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);">
   <tr><td style="background:#F78121;padding:20px 28px;">
-    <span style="color:#fff;font-size:18px;font-weight:700;">VOC 접수 채널</span>
+    <span style="color:#fff;font-size:18px;font-weight:700;">서버솔루션팀 VOC 채널</span>
   </td></tr>
   <tr><td style="padding:28px;">${body}</td></tr>
   <tr><td style="padding:16px 28px;background:#f9fafb;border-top:1px solid #e5e7eb;">

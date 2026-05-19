@@ -116,7 +116,7 @@ export default async function VocViewPage({ params, searchParams }: Props) {
       <header className="topbar">
         <Link href="/" className="topbar-brand" style={{ textDecoration: 'none' }}>
           <div className="logo">V</div>
-          <span>VOC 접수 채널</span>
+          <span>서버솔루션팀 VOC 채널</span>
         </Link>
       </header>
 
@@ -163,7 +163,6 @@ export default async function VocViewPage({ params, searchParams }: Props) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(160px,1fr))', gap: 16 }}>
               <Field label="부서">{row.requester_dept}</Field>
               <Field label="접수자">{row.requester_name}</Field>
-              {row.requester_email && <Field label="이메일">{row.requester_email}</Field>}
             </div>
           </div>
 

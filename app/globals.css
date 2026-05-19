@@ -196,7 +196,7 @@ body {
 .textarea { padding: 10px 12px; height: auto; min-height: 96px; resize: vertical; line-height: 1.5; }
 .input:hover:not(:disabled), .select:hover:not(:disabled), .textarea:hover:not(:disabled) { border-color: var(--gray-400); }
 .input:focus, .select:focus, .textarea:focus { border-color: var(--brand-500); box-shadow: 0 0 0 3px var(--brand-100); }
-.input::placeholder, .textarea::placeholder { color: var(--gray-300); }
+.input::placeholder, .textarea::placeholder { color: var(--gray-200); }
 .input.invalid, .select.invalid, .textarea.invalid { border-color: var(--danger-500); box-shadow: 0 0 0 3px var(--danger-50); }
 .input:disabled, .textarea:disabled, .select:disabled { background: var(--surface-sunken); color: var(--text-disabled); cursor: not-allowed; }
 
@@ -346,6 +346,15 @@ body {
 .icon-btn { width: 32px; height: 32px; border-radius: var(--r-sm); border: 1px solid var(--surface-border); background: var(--surface-card); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); transition: background 0.12s, color 0.12s; }
 .icon-btn:hover { background: var(--surface-hover); color: var(--text-strong); }
 
+/* input 옆에 붙는 인라인 액션 버튼 (input 높이에 자동 매칭) */
+.icon-btn-md { width: 38px; height: 38px; border-radius: var(--r-sm); border: 1px solid var(--surface-border); background: var(--surface-card); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); flex-shrink: 0; transition: background 0.12s, color 0.12s; }
+.icon-btn-md:hover { background: var(--surface-hover); color: var(--text-strong); }
+
+/* 데스크탑/모바일 분기 (contents: 부모 flex 흐름에 자연 합류) */
+.show-mobile { display: none; }
+.show-desktop { display: contents; }
+.show-mobile-block { display: none; }
+
 .divider { height: 1px; background: var(--surface-border); border: 0; margin: 0; }
 
 .page-container { max-width: 640px; margin: 0 auto; padding: 0 var(--s-4); }
@@ -355,6 +364,52 @@ body {
 
 @media (min-width: 768px) {
   .btn-full { width: auto; }
+}
+
+/* ================================================================
+   Mobile (< 640px) — iOS 자동 줌 방지, 터치 타깃 확대, sticky CTA
+   ================================================================ */
+@media (max-width: 640px) {
+  /* iOS는 16px 미만 input에 포커스 시 페이지를 강제 줌인 */
+  .input, .select, .textarea { font-size: 16px; }
+
+  /* 터치 타깃 44px 이상 (Apple HIG) */
+  .input, .select { height: 44px; }
+  .seg-block { padding: 4px; }
+  .seg-block button { height: 44px; font-size: 15px; }
+
+  /* 체크박스 키움 */
+  .check { width: 22px; height: 22px; border-radius: 5px; }
+  .check.on::after { width: 12px; height: 7px; border-left-width: 2.5px; border-bottom-width: 2.5px; }
+
+  /* 아이콘 버튼 키움 */
+  .icon-btn { width: 40px; height: 40px; }
+  .icon-btn-md { width: 44px; height: 44px; }
+
+  /* 카드 자체 패딩은 기본값 유지 */
+  .card { padding: 16px; }
+
+  /* 카드와 화면 좌우 끝 사이 여백 축소 — 콘텐츠 폭 확보 */
+  .page-container { padding: 0 4px; }
+
+  /* 데스크탑/모바일 분기 */
+  .show-desktop { display: none !important; }
+  .show-mobile { display: contents; }
+  .show-mobile-block { display: inline-flex; }
+
+  /* 하단 sticky 제출 바 */
+  .submit-bar {
+    position: sticky; bottom: 0; z-index: 8;
+    margin: 0 -16px -80px;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    background: var(--surface-card);
+    border-top: 1px solid var(--surface-border);
+    box-shadow: 0 -4px 12px rgba(15,20,30,0.06);
+    flex-direction: row !important;
+    gap: 8px;
+  }
+  .submit-bar > * { flex: 1; min-width: 0; justify-content: center; }
+  .submit-bar.hidden { display: none; }
 }
 
 @keyframes spin {

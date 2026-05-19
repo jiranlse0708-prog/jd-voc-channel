@@ -22,7 +22,7 @@ const PRIORITIES = [
   { value: 'highest', label: '최상', desc: '당장 개발 진행이 필요한 급 건' },
   { value: 'high',    label: '상',   desc: '고객과 약속된 기한이 있는 건' },
   { value: 'medium',  label: '중',   desc: '정해진 기한이 없는 일반 건' },
-  { value: 'low',     label: '하',   desc: '개발되면 좋지만 현재도 무방' },
+  { value: 'low',     label: '하',   desc: '개발되면 좋지만 당장 급하지는 않은 건' },
 ] as const
 
 const MAX_FILE_BYTES  = 50  * 1024 * 1024 // 50 MB
@@ -31,13 +31,13 @@ const MAX_TOTAL_BYTES = 200 * 1024 * 1024 // 200 MB
 const LS = {
   dept:     'voc.requester.dept',
   name:     'voc.requester.name',
-  email:    'voc.requester.email',
   remember: 'voc.requester.remember',
+  draft:    'voc.draft',
 } as const
 
 /* ── 타입 ── */
 type ErrorKey =
-  | 'dept' | 'name' | 'email'
+  | 'dept' | 'name'
   | 'product' | 'vocType'
   | 'summary' | 'purpose' | 'screenPath' | 'detail'
   | 'files'
@@ -48,10 +48,6 @@ function fmtSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`
-}
-
-function isValidEmail(v: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
 }
 
 /* ── 파일 아이콘 ── */
@@ -96,14 +92,29 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   )
 }
 
+/* ── 자동 높이 textarea ── */
+interface AutoTextareaProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'ref'> {
+  value: string
+  minHeight?: number
+}
+function AutoTextarea({ value, minHeight = 96, style, ...rest }: AutoTextareaProps) {
+  const ref = useRef<HTMLTextAreaElement>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${Math.max(el.scrollHeight, minHeight)}px`
+  }, [value, minHeight])
+  return <textarea ref={ref} value={value} style={{ resize: 'none', minHeight, overflow: 'hidden', ...style }} {...rest} />
+}
+
 /* ════════════════════════════════════════════════════
    메인 컴포넌트
 ════════════════════════════════════════════════════ */
 export default function VocNewPage() {
   /* 요청자 */
-  const [dept,  setDept]  = useState('')
-  const [name,  setName]  = useState('')
-  const [email, setEmail] = useState('')
+  const [dept, setDept] = useState('')
+  const [name, setName] = useState('')
 
   /* 분류 */
   const [product, setProduct] = useState<string>('SERVERFILTER')
@@ -115,9 +126,9 @@ export default function VocNewPage() {
   const [priority, setPriority] = useState('medium')
 
   /* 상세 */
-  const [purpose,    setPurpose]    = useState('')
-  const [screenPath, setScreenPath] = useState('')
-  const [detail,     setDetail]     = useState('')
+  const [purpose,     setPurpose]     = useState('')
+  const [screenPaths, setScreenPaths] = useState<string[]>([''])
+  const [detail,      setDetail]      = useState('')
 
   /* 첨부·기한 */
   const [dueDate,    setDueDate]    = useState('')
@@ -137,6 +148,9 @@ export default function VocNewPage() {
   /* 스크롤 진행률 (0 ~ 1) */
   const [scrollProgress, setScrollProgress] = useState(0)
 
+  /* 모바일 키보드 감지 (visualViewport) */
+  const [keyboardOpen, setKeyboardOpen] = useState(false)
+
   const router       = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const lsLoaded     = useRef(false) // 로컬스토리지 로드 완료 여부
@@ -148,31 +162,58 @@ export default function VocNewPage() {
     const rememberOn  = rememberRaw !== '0'
     setRemember(rememberOn)
     if (rememberOn) {
-      setDept(localStorage.getItem(LS.dept)  ?? '')
-      setName(localStorage.getItem(LS.name)  ?? '')
-      setEmail(localStorage.getItem(LS.email) ?? '')
+      setDept(localStorage.getItem(LS.dept) ?? '')
+      setName(localStorage.getItem(LS.name) ?? '')
     }
+
+    /* 드래프트 복원 — 작성 중이던 폼이 있으면 자동으로 채움 */
+    const draftRaw = localStorage.getItem(LS.draft)
+    if (draftRaw) {
+      try {
+        const d = JSON.parse(draftRaw)
+        if (typeof d.product    === 'string') setProduct(d.product)
+        if (typeof d.vocType    === 'string') setVocType(d.vocType)
+        if (typeof d.summary    === 'string') setSummary(d.summary)
+        if (typeof d.customer   === 'string') setCustomer(d.customer)
+        if (typeof d.priority   === 'string') setPriority(d.priority)
+        if (typeof d.purpose    === 'string') setPurpose(d.purpose)
+        if (Array.isArray(d.screenPaths) && d.screenPaths.length > 0)
+          setScreenPaths(d.screenPaths)
+        if (typeof d.detail     === 'string') setDetail(d.detail)
+        if (typeof d.dueDate    === 'string') setDueDate(d.dueDate)
+      } catch { /* 손상된 드래프트는 무시 */ }
+    }
+
     lsLoaded.current = true
   }, [])
 
   /* ── 로컬스토리지 저장 (remember ON일 때만) ── */
-  useEffect(() => { if (lsLoaded.current && remember) localStorage.setItem(LS.dept,  dept)  }, [dept,  remember])
-  useEffect(() => { if (lsLoaded.current && remember) localStorage.setItem(LS.name,  name)  }, [name,  remember])
-  useEffect(() => { if (lsLoaded.current && remember) localStorage.setItem(LS.email, email) }, [email, remember])
+  useEffect(() => { if (lsLoaded.current && remember) localStorage.setItem(LS.dept, dept) }, [dept, remember])
+  useEffect(() => { if (lsLoaded.current && remember) localStorage.setItem(LS.name, name) }, [name, remember])
+
+  /* ── 드래프트 자동 저장 (500ms 디바운스) ── */
+  useEffect(() => {
+    if (!lsLoaded.current) return
+    const handle = setTimeout(() => {
+      localStorage.setItem(LS.draft, JSON.stringify({
+        product, vocType, summary, customer, priority,
+        purpose, screenPaths, detail, dueDate,
+      }))
+    }, 500)
+    return () => clearTimeout(handle)
+  }, [product, vocType, summary, customer, priority, purpose, screenPaths, detail, dueDate])
 
   /* ── remember 토글 시: OFF로 바뀌면 즉시 저장값 삭제, ON으로 바뀌면 현재 값 기록 ── */
   useEffect(() => {
     if (!lsLoaded.current) return
     if (remember) {
       localStorage.setItem(LS.remember, '1')
-      localStorage.setItem(LS.dept,  dept)
-      localStorage.setItem(LS.name,  name)
-      localStorage.setItem(LS.email, email)
+      localStorage.setItem(LS.dept, dept)
+      localStorage.setItem(LS.name, name)
     } else {
       localStorage.setItem(LS.remember, '0')
       localStorage.removeItem(LS.dept)
       localStorage.removeItem(LS.name)
-      localStorage.removeItem(LS.email)
     }
   }, [remember]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -192,6 +233,19 @@ export default function VocNewPage() {
       window.removeEventListener('scroll', update)
       window.removeEventListener('resize', update)
     }
+  }, [])
+
+  /* ── 모바일 키보드 감지 ── */
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    const onResize = () => {
+      const diff = window.innerHeight - vv.height
+      setKeyboardOpen(diff > 150) // 150px 이상 줄어들면 키보드로 간주
+    }
+    onResize()
+    vv.addEventListener('resize', onResize)
+    return () => vv.removeEventListener('resize', onResize)
   }, [])
 
   /* ── 클립보드 붙여넣기 ── */
@@ -263,13 +317,12 @@ export default function VocNewPage() {
     const e: Errors = {}
     if (!dept.trim())       e.dept       = '부서를 입력해 주세요.'
     if (!name.trim())       e.name       = '이름을 입력해 주세요.'
-    if (email && !isValidEmail(email))
-                            e.email      = '이메일 형식이 올바르지 않습니다.'
     if (!product)           e.product    = '제품을 선택해 주세요.'
     if (!vocType)           e.vocType    = 'VOC 유형을 선택해 주세요.'
-    if (!summary.trim())    e.summary    = '요약을 입력해 주세요.'
+    if (!summary.trim())    e.summary    = '제목을 입력해 주세요.'
     if (!purpose.trim())    e.purpose    = '목적/배경을 입력해 주세요.'
-    if (!screenPath.trim()) e.screenPath = '화면 위치를 입력해 주세요.'
+    if (screenPaths.every(s => !s.trim()))
+                            e.screenPath = '화면 위치를 입력해 주세요.'
     if (!detail.trim())     e.detail     = '요구사항 상세를 입력해 주세요.'
     return e
   }
@@ -297,14 +350,13 @@ export default function VocNewPage() {
       const fd = new FormData()
       fd.append('dept',       dept)
       fd.append('name',       name)
-      fd.append('email',      email)
       fd.append('product',    product)
       fd.append('vocType',    vocType)
       fd.append('summary',    summary)
       fd.append('customer',   customer)
       fd.append('priority',   priority)
       fd.append('purpose',    purpose)
-      fd.append('screenPath', screenPath)
+      fd.append('screenPath', screenPaths.map(s => s.trim()).filter(Boolean).join('\n'))
       fd.append('detail',     detail)
       fd.append('dueDate',    dueDate)
       files.forEach(f => fd.append('files', f))
@@ -315,6 +367,9 @@ export default function VocNewPage() {
       if (!res.ok) {
         throw new Error(data.error ?? '접수 중 오류가 발생했습니다.')
       }
+
+      /* 접수 성공 — 드래프트 삭제 */
+      localStorage.removeItem(LS.draft)
 
       const jiraParam = data.jiraKey ? `&jira=${data.jiraKey}` : ''
       router.push(`/voc/complete?id=${data.id}&token=${data.viewToken}${jiraParam}`)
@@ -332,11 +387,8 @@ export default function VocNewPage() {
       <header className="topbar">
         <Link href="/" className="topbar-brand" style={{ textDecoration: 'none' }}>
           <div className="logo">V</div>
-          <span>VOC 접수 채널</span>
+          <span>서버솔루션팀 VOC 채널</span>
         </Link>
-        <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-          새 VOC 접수
-        </span>
       </header>
 
       {/* ─── 스크롤 진행률 ─── */}
@@ -358,7 +410,7 @@ export default function VocNewPage() {
           {/* 페이지 타이틀 */}
           <div style={{ marginBottom: 4 }}>
             <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-strong)', margin: '0 0 4px' }}>
-              새 VOC 접수
+              VOC 접수
             </h1>
             <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>
               <span style={{ color: 'var(--danger-500)' }}>*</span> 표시 항목은 필수입니다.
@@ -376,7 +428,7 @@ export default function VocNewPage() {
                   className={`input${errors.dept ? ' invalid' : ''}`}
                   value={dept}
                   onChange={e => { setDept(e.target.value); setErrors(p => { const { dept: _, ...r } = p; return r }) }}
-                  placeholder="예: 영업팀"
+                  placeholder="예: 수도권사업부 영업팀"
                 />
                 <FieldError msg={errors.dept} />
               </div>
@@ -390,21 +442,6 @@ export default function VocNewPage() {
                 />
                 <FieldError msg={errors.name} />
               </div>
-            </div>
-
-            <div>
-              <label className="field-label">이메일</label>
-              <input
-                className={`input${errors.email ? ' invalid' : ''}`}
-                type="email"
-                value={email}
-                onChange={e => { setEmail(e.target.value); setErrors(p => { const { email: _, ...r } = p; return r }) }}
-                placeholder="name@company.com"
-              />
-              {errors.email
-                ? <FieldError msg={errors.email} />
-                : <p className="field-help">이메일을 입력하시면 접수 상태 변경 알림을 받을 수 있어요.</p>
-              }
             </div>
 
             {/* 자동 저장 동의 */}
@@ -421,7 +458,7 @@ export default function VocNewPage() {
                   tabIndex={0}
                   onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setRemember(v => !v) } }}
                 />
-                이 브라우저에 부서·이름·이메일 기억하기
+                이 브라우저에 부서·이름 기억하기
               </label>
             </div>
           </div>
@@ -486,26 +523,8 @@ export default function VocNewPage() {
               </div>
               <FieldError msg={errors.vocType} />
             </div>
-          </div>
 
-          {/* ══ 3. 내용 요약 ══ */}
-          <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <SectionTitle>내용 요약</SectionTitle>
-
-            <div>
-              <label className="field-label">요약<span className="req">*</span></label>
-              <input
-                className={`input${errors.summary ? ' invalid' : ''}`}
-                value={summary}
-                onChange={e => { setSummary(e.target.value); setErrors(p => { const { summary: _, ...r } = p; return r }) }}
-                placeholder="한 줄 요약 (예: 결제 화면 카드 등록 실패)"
-              />
-              {errors.summary
-                ? <FieldError msg={errors.summary} />
-                : <p className="field-help">JIRA 등록 시 [제품명] 접두사가 자동으로 붙습니다.</p>
-              }
-            </div>
-
+            {/* 고객사 / 우선순위 */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="field-label">고객사</label>
@@ -534,17 +553,32 @@ export default function VocNewPage() {
             </div>
           </div>
 
-          {/* ══ 4. 상세 내용 ══ */}
+          {/* ══ 3. 상세 내용 ══ */}
           <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <SectionTitle>상세 내용</SectionTitle>
 
             <div>
+              <label className="field-label">제목<span className="req">*</span></label>
+              <input
+                className={`input${errors.summary ? ' invalid' : ''}`}
+                value={summary}
+                onChange={e => { setSummary(e.target.value); setErrors(p => { const { summary: _, ...r } = p; return r }) }}
+                placeholder="관리자 추가 오류 확인 요청"
+              />
+              {errors.summary
+                ? <FieldError msg={errors.summary} />
+                : <p className="field-help">제목 앞에 [제품명]이 자동으로 추가됩니다.</p>
+              }
+            </div>
+
+            <div>
               <label className="field-label">목적 / 배경<span className="req">*</span></label>
-              <textarea
+              <AutoTextarea
                 className={`textarea${errors.purpose ? ' invalid' : ''}`}
                 value={purpose}
                 onChange={e => { setPurpose(e.target.value); setErrors(p => { const { purpose: _, ...r } = p; return r }) }}
-                rows={4}
+                rows={3}
+                minHeight={84}
                 placeholder="왜 이 요청을 하게 됐는지 배경을 설명해 주세요."
               />
               <FieldError msg={errors.purpose} />
@@ -552,38 +586,75 @@ export default function VocNewPage() {
 
             <div>
               <label className="field-label">화면 위치 (경로)<span className="req">*</span></label>
-              <input
-                className={`input${errors.screenPath ? ' invalid' : ''}`}
-                value={screenPath}
-                onChange={e => { setScreenPath(e.target.value); setErrors(p => { const { screenPath: _, ...r } = p; return r }) }}
-                placeholder="예: 설정 > 보안 > 개인정보 관리"
-              />
-              {errors.screenPath
-                ? <FieldError msg={errors.screenPath} />
-                : <p className="field-help">접속 메뉴 경로나 URL을 입력해 주세요.</p>
-              }
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {screenPaths.map((path, idx) => (
+                  <div key={idx} style={{ display: 'flex', gap: 6 }}>
+                    <input
+                      className={`input${errors.screenPath && idx === 0 ? ' invalid' : ''}`}
+                      value={path}
+                      onChange={e => {
+                        const next = [...screenPaths]
+                        next[idx] = e.target.value
+                        setScreenPaths(next)
+                        setErrors(p => { const { screenPath: _, ...r } = p; return r })
+                      }}
+                      placeholder="진단 관리 > 보유 현황 > 조치 파일 목록"
+                    />
+                    {screenPaths.length > 1 && (
+                      <button
+                        type="button"
+                        className="icon-btn-md"
+                        onClick={() => setScreenPaths(screenPaths.filter((_, i) => i !== idx))}
+                        aria-label={`${idx + 1}번째 화면 위치 제거`}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                          <path d="M3 6h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setScreenPaths([...screenPaths, ''])}
+                  style={{
+                    alignSelf: 'flex-start',
+                    display: 'inline-flex', alignItems: 'center', gap: 4,
+                    fontSize: 12, fontWeight: 600, color: 'var(--text-link)',
+                    background: 'none', border: 0, padding: '4px 0',
+                    cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M6 3v6M3 6h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                  화면 위치 추가
+                </button>
+              </div>
+              <FieldError msg={errors.screenPath} />
             </div>
 
             <div>
               <label className="field-label">요구사항 상세<span className="req">*</span></label>
-              <textarea
+              <AutoTextarea
                 className={`textarea${errors.detail ? ' invalid' : ''}`}
                 value={detail}
                 onChange={e => { setDetail(e.target.value); setErrors(p => { const { detail: _, ...r } = p; return r }) }}
-                rows={6}
-                placeholder={'구체적인 요구사항을 작성해 주세요.\n재현 절차가 있다면 단계별로 적어주세요.\n1. ...\n2. ...'}
+                rows={9}
+                minHeight={200}
+                placeholder="구체적인 요구사항을 작성해주세요."
               />
               <FieldError msg={errors.detail} />
             </div>
           </div>
 
-          {/* ══ 5. 첨부 및 기한 ══ */}
+          {/* ══ 4. 첨부 및 기한 ══ */}
           <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <SectionTitle>첨부 및 기한</SectionTitle>
 
             {/* 기한 */}
             <div>
-              <label className="field-label">기한</label>
+              <label className="field-label">약속된 기한</label>
               <input
                 className="input"
                 type="date"
@@ -597,6 +668,9 @@ export default function VocNewPage() {
             {/* 첨부파일 */}
             <div>
               <label className="field-label">첨부파일</label>
+              <p className="field-help" style={{ marginTop: 0, marginBottom: 8 }}>
+                화면 캡쳐본, 고객사 요청 원본 등 이해에 도움이 될만한 자료를 첨부해주세요.
+              </p>
 
               <div
                 className={`dropzone${isDragging ? ' active' : ''}`}
@@ -615,16 +689,32 @@ export default function VocNewPage() {
                     <path d="M8 11V3m0 0L5 6m3-3l3 3M3 12v1a1 1 0 001 1h8a1 1 0 001-1v-1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-strong)' }}>
-                  파일을 드래그하거나{' '}
-                  <span style={{ color: 'var(--brand-700)', textDecoration: 'underline' }}>찾아보기</span>
+                {/* 데스크탑 안내 */}
+                <div className="show-desktop">
+                  <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-strong)' }}>
+                    파일을 드래그하거나{' '}
+                    <span style={{ color: 'var(--brand-700)', textDecoration: 'underline' }}>찾아보기</span>
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
+                    PNG · JPG · PDF · DOCX · PPTX · XLSX · HWP · TXT — 파일당 최대 50MB
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--text-subtle)', display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                    <kbd>Ctrl</kbd><span>+</span><kbd>V</kbd>
+                    <span>로 스크린샷을 바로 붙여넣을 수 있어요</span>
+                  </div>
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                  PNG · JPG · PDF · DOCX · PPTX · XLSX · HWP · TXT — 파일당 최대 50MB
-                </div>
-                <div style={{ fontSize: 11, color: 'var(--text-subtle)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <kbd>Ctrl</kbd><span>+</span><kbd>V</kbd>
-                  <span>로 스크린샷을 바로 붙여넣을 수 있어요</span>
+
+                {/* 모바일 안내 */}
+                <div className="show-mobile">
+                  <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-strong)' }}>
+                    탭하여 파일 선택
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                    (Ctrl + V 가능)
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
+                    PNG · JPG · PDF · DOCX 등 — 파일당 최대 50MB
+                  </div>
                 </div>
               </div>
 
@@ -682,10 +772,30 @@ export default function VocNewPage() {
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2 pb-4">
-            <Link href="/" className="btn btn-ghost btn-lg" style={{ justifyContent: 'center' }}>
-              취소
-            </Link>
+          <div className={`submit-bar flex flex-col sm:flex-row justify-end gap-3 pt-2 pb-4${keyboardOpen ? ' hidden' : ''}`}>
+            <button
+              type="button"
+              className="btn btn-ghost btn-lg"
+              style={{ justifyContent: 'center' }}
+              onClick={() => {
+                if (!window.confirm('입력한 내용이 모두 사라집니다. 초기화할까요?')) return
+                setProduct('SERVERFILTER')
+                setVocType('')
+                setSummary('')
+                setCustomer('')
+                setPriority('medium')
+                setPurpose('')
+                setScreenPaths([''])
+                setDetail('')
+                setDueDate('')
+                setFiles([])
+                setErrors({})
+                setSubmitError(null)
+                localStorage.removeItem(LS.draft)
+              }}
+            >
+              초기화
+            </button>
             <button
               type="submit"
               className="btn btn-primary btn-lg"
