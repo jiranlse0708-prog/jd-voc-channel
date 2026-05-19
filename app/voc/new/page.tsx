@@ -466,7 +466,7 @@ export default function VocNewPage() {
                   tabIndex={0}
                   onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setRemember(v => !v) } }}
                 />
-                이 브라우저에 부서·이름 기억하기
+                부서·이름 기억하기
               </label>
             </div>
           </div>
