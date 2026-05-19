@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import CopyButton from './CopyButton'
 
 interface Props {
   searchParams: Promise<{ id?: string; token?: string; jira?: string }>
@@ -80,18 +81,11 @@ export default async function CompletePage({ searchParams }: Props) {
           {/* 접수 정보 카드 */}
           <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-            {/* JIRA 이슈 — 클릭 시 JIRA 페이지로 이동 */}
+            {/* JIRA 이슈 */}
             {jira && (
-              jiraUrl ? (
-                <a
-                  href={jiraUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    textDecoration: 'none', color: 'inherit',
-                  }}
-                >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {/* 이슈 행 */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{
                     width: 40, height: 40, borderRadius: 10,
                     background: 'var(--brand-50)', border: '1px solid var(--brand-100)',
@@ -110,32 +104,42 @@ export default async function CompletePage({ searchParams }: Props) {
                       {jira}
                     </div>
                   </div>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, color: 'var(--text-muted)' }} aria-label="새 탭에서 열기">
-                    <path d="M6 3H3v10h10v-3M9 3h4v4M13 3L7.5 8.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </a>
-              ) : (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{
-                    width: 40, height: 40, borderRadius: 10,
-                    background: 'var(--brand-50)', border: '1px solid var(--brand-100)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: 'var(--brand-600)', flexShrink: 0,
-                  }}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" fill="currentColor"/>
-                    </svg>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 11, color: 'var(--text-subtle)', fontFamily: 'var(--font-mono)', marginBottom: 2 }}>
-                      JIRA 이슈
-                    </div>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-strong)', fontFamily: 'var(--font-mono)' }}>
-                      {jira}
-                    </div>
-                  </div>
+                  {jiraUrl && (
+                    <a
+                      href={jiraUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-sm btn-secondary"
+                      style={{ flexShrink: 0 }}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                        <path d="M6 3H3v10h10v-3M9 3h4v4M13 3L7.5 8.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      열기
+                    </a>
+                  )}
                 </div>
-              )
+
+                {/* JIRA 링크 복사 */}
+                {jiraUrl && (
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '10px 14px',
+                    background: 'var(--surface-canvas)',
+                    border: '1px solid var(--surface-border)',
+                    borderRadius: 'var(--r-md)',
+                  }}>
+                    <span style={{
+                      fontSize: 12, fontFamily: 'var(--font-mono)',
+                      color: 'var(--brand-700)', flex: 1,
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
+                      {jiraUrl}
+                    </span>
+                    <CopyButton url={jiraUrl} />
+                  </div>
+                )}
+              </div>
             )}
 
           </div>
