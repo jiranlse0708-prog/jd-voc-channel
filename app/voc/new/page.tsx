@@ -627,9 +627,9 @@ export default function VocNewPage() {
                   type="button"
                   onClick={() => setScreenPaths([...screenPaths, ''])}
                   style={{
-                    alignSelf: 'flex-start',
+                    alignSelf: 'flex-end',
                     display: 'inline-flex', alignItems: 'center', gap: 4,
-                    fontSize: 12, fontWeight: 600, color: 'var(--text-link)',
+                    fontSize: 12, fontWeight: 600, color: 'var(--text-muted)',
                     background: 'none', border: 0, padding: '4px 0',
                     cursor: 'pointer', fontFamily: 'inherit',
                   }}
