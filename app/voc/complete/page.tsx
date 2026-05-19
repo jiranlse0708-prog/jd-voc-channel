@@ -105,23 +105,22 @@ export default async function CompletePage({ searchParams }: Props) {
                     </div>
                   </div>
                   {jiraUrl && (
-                    <a
-                      href={jiraUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn btn-sm btn-secondary"
-                      style={{ flexShrink: 0 }}
-                    >
-                      <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                        <path d="M6 3H3v10h10v-3M9 3h4v4M13 3L7.5 8.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                      열기
-                    </a>
+                    <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                      <CopyButton url={jiraUrl} />
+                      <a
+                        href={jiraUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-sm btn-secondary"
+                      >
+                        <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                          <path d="M6 3H3v10h10v-3M9 3h4v4M13 3L7.5 8.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        열기
+                      </a>
+                    </div>
                   )}
                 </div>
-
-                {/* JIRA 링크 복사 */}
-                {jiraUrl && <CopyButton url={jiraUrl} />}
               </div>
             )}
 
