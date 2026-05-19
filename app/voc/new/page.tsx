@@ -670,10 +670,11 @@ export default function VocNewPage() {
                   onChange={e => setDueDate(e.target.value)}
                   style={{ paddingRight: dueDate ? 40 : 36 }}
                 />
-                {/* 달력 아이콘 — 날짜 미입력 시 */}
+                {/* 달력 아이콘 — 날짜 미입력 시, 모바일 전용 (데스크탑은 네이티브 아이콘 사용) */}
                 {!dueDate && (
                   <svg
                     aria-hidden="true"
+                    className="date-cal-icon"
                     width="16" height="16" viewBox="0 0 16 16" fill="none"
                     style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--text-muted)' }}
                   >
