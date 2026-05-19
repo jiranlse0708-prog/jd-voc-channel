@@ -121,24 +121,7 @@ export default async function CompletePage({ searchParams }: Props) {
                 </div>
 
                 {/* JIRA 링크 복사 */}
-                {jiraUrl && (
-                  <div style={{
-                    display: 'flex', alignItems: 'center', gap: 10,
-                    padding: '10px 14px',
-                    background: 'var(--surface-canvas)',
-                    border: '1px solid var(--surface-border)',
-                    borderRadius: 'var(--r-md)',
-                  }}>
-                    <span style={{
-                      fontSize: 12, fontFamily: 'var(--font-mono)',
-                      color: 'var(--brand-700)', flex: 1,
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    }}>
-                      {jiraUrl}
-                    </span>
-                    <CopyButton url={jiraUrl} />
-                  </div>
-                )}
+                {jiraUrl && <CopyButton url={jiraUrl} />}
               </div>
             )}
 
