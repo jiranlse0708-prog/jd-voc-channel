@@ -776,6 +776,8 @@ export default function VocNewPage() {
               style={{ justifyContent: 'center' }}
               onClick={() => {
                 if (!window.confirm('입력한 내용이 모두 사라집니다. 초기화할까요?')) return
+                setDept('')
+                setName('')
                 setProduct('SERVERFILTER')
                 setVocType('')
                 setSummary('')
@@ -789,6 +791,8 @@ export default function VocNewPage() {
                 setErrors({})
                 setSubmitError(null)
                 localStorage.removeItem(LS.draft)
+                if (fileInputRef.current) fileInputRef.current.value = ''
+                window.scrollTo({ top: 0, behavior: 'smooth' })
               }}
             >
               초기화
