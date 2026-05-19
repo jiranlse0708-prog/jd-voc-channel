@@ -196,7 +196,7 @@ body {
 .textarea { padding: 10px 12px; height: auto; min-height: 96px; resize: vertical; line-height: 1.5; }
 .input:hover:not(:disabled), .select:hover:not(:disabled), .textarea:hover:not(:disabled) { border-color: var(--gray-400); }
 .input:focus, .select:focus, .textarea:focus { border-color: var(--brand-500); box-shadow: 0 0 0 3px var(--brand-100); }
-.input::placeholder, .textarea::placeholder { color: var(--text-disabled); }
+.input::placeholder, .textarea::placeholder { color: var(--gray-300); }
 .input.invalid, .select.invalid, .textarea.invalid { border-color: var(--danger-500); box-shadow: 0 0 0 3px var(--danger-50); }
 .input:disabled, .textarea:disabled, .select:disabled { background: var(--surface-sunken); color: var(--text-disabled); cursor: not-allowed; }
 
@@ -253,6 +253,18 @@ body {
 .seg button:hover { color: var(--text-strong); }
 .seg button.on { background: var(--surface-card); color: var(--text-strong); box-shadow: var(--shadow-1); }
 
+/* Segmented (block — 가로 꽉 채움) */
+.seg-block { display: grid; background: var(--surface-sunken); padding: 4px; border-radius: var(--r-md); gap: 2px; width: 100%; }
+.seg-block button {
+  border: 0; background: transparent; height: 38px; padding: 0 14px;
+  font-size: 14px; font-weight: 600; color: var(--text-muted);
+  cursor: pointer; border-radius: var(--r-sm); font-family: inherit;
+  transition: background 0.12s, color 0.12s, box-shadow 0.12s;
+}
+.seg-block button:hover { color: var(--text-strong); }
+.seg-block button.on { background: var(--surface-card); color: var(--brand-700); box-shadow: var(--shadow-1); }
+.seg-block.invalid { box-shadow: 0 0 0 1.5px var(--danger-500); }
+
 /* ================================================================
    Dropzone / File
    ================================================================ */
@@ -305,6 +317,19 @@ body {
 .card { background: var(--surface-card); border: 1px solid var(--surface-border); border-radius: var(--r-lg); padding: var(--s-6); box-shadow: var(--shadow-1); }
 
 .topbar { height: 52px; display: flex; align-items: center; padding: 0 22px; border-bottom: 1px solid var(--surface-border); background: var(--surface-card); gap: 14px; position: sticky; top: 0; z-index: 10; }
+
+/* Scroll progress bar (topbar 하단에 부착) */
+.scroll-progress {
+  position: sticky; top: 52px; z-index: 9;
+  height: 3px; background: var(--surface-border);
+  width: 100%;
+}
+.scroll-progress > .bar {
+  height: 100%; background: var(--brand-500);
+  width: 0%;
+  transition: width 0.08s linear;
+  border-radius: 0 var(--r-pill) var(--r-pill) 0;
+}
 .topbar-brand { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--text-strong); font-size: 14px; }
 .topbar-brand .logo { width: 22px; height: 22px; border-radius: 6px; background: var(--brand-500); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 800; font-family: var(--font-mono); }
 

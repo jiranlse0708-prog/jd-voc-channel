@@ -6,7 +6,10 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 /* ── 상수 ── */
-const PRODUCTS = ['SERVERFILTER', 'IDFILTER'] as const
+const PRODUCTS = [
+  { value: 'SERVERFILTER', label: 'ServerFilter' },
+  { value: 'IDFILTER',     label: 'IDFilter' },
+] as const
 
 const VOC_TYPES = [
   { value: 'inquiry', label: '단순문의', desc: '사용 방법·정책 등 답변만 필요한 문의' },
@@ -87,7 +90,7 @@ function FieldError({ msg }: { msg?: string }) {
 /* ── 섹션 헤더 ── */
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-strong)', margin: '0 0 20px', paddingBottom: 12, borderBottom: '1px solid var(--surface-border)' }}>
+    <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-strong)', margin: '0 0 4px', paddingBottom: 10, borderBottom: '1px solid var(--surface-border)' }}>
       {children}
     </h2>
   )
@@ -103,7 +106,7 @@ export default function VocNewPage() {
   const [email, setEmail] = useState('')
 
   /* 분류 */
-  const [product, setProduct] = useState('')
+  const [product, setProduct] = useState<string>('SERVERFILTER')
   const [vocType, setVocType] = useState('')
 
   /* 내용 요약 */
@@ -130,6 +133,9 @@ export default function VocNewPage() {
 
   /* 로컬 저장 동의 (기본 ON) */
   const [remember, setRemember] = useState(true)
+
+  /* 스크롤 진행률 (0 ~ 1) */
+  const [scrollProgress, setScrollProgress] = useState(0)
 
   const router       = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -170,15 +176,23 @@ export default function VocNewPage() {
     }
   }, [remember]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  /* ── 저장된 정보 지우기 (입력값도 비움) ── */
-  const clearStoredRequester = () => {
-    localStorage.removeItem(LS.dept)
-    localStorage.removeItem(LS.name)
-    localStorage.removeItem(LS.email)
-    setDept('')
-    setName('')
-    setEmail('')
-  }
+  /* ── 스크롤 진행률 계산 ── */
+  useEffect(() => {
+    const update = () => {
+      const doc = document.documentElement
+      const total = doc.scrollHeight - window.innerHeight
+      if (total <= 0) { setScrollProgress(0); return }
+      const ratio = window.scrollY / total
+      setScrollProgress(Math.min(1, Math.max(0, ratio)))
+    }
+    update()
+    window.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+    return () => {
+      window.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [])
 
   /* ── 클립보드 붙여넣기 ── */
   useEffect(() => {
@@ -248,7 +262,7 @@ export default function VocNewPage() {
   const validate = (): Errors => {
     const e: Errors = {}
     if (!dept.trim())       e.dept       = '부서를 입력해 주세요.'
-    if (!name.trim())       e.name       = '성함을 입력해 주세요.'
+    if (!name.trim())       e.name       = '이름을 입력해 주세요.'
     if (email && !isValidEmail(email))
                             e.email      = '이메일 형식이 올바르지 않습니다.'
     if (!product)           e.product    = '제품을 선택해 주세요.'
@@ -325,6 +339,18 @@ export default function VocNewPage() {
         </span>
       </header>
 
+      {/* ─── 스크롤 진행률 ─── */}
+      <div
+        className="scroll-progress"
+        role="progressbar"
+        aria-valuenow={Math.round(scrollProgress * 100)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="작성 진행률"
+      >
+        <div className="bar" style={{ width: `${scrollProgress * 100}%` }} />
+      </div>
+
       {/* ─── 본문 ─── */}
       <main className="flex-1" style={{ background: 'var(--surface-canvas)', padding: '32px 16px 80px' }}>
         <form onSubmit={onSubmit} noValidate className="page-container" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -355,7 +381,7 @@ export default function VocNewPage() {
                 <FieldError msg={errors.dept} />
               </div>
               <div>
-                <label className="field-label">성함<span className="req">*</span></label>
+                <label className="field-label">이름<span className="req">*</span></label>
                 <input
                   className={`input${errors.name ? ' invalid' : ''}`}
                   value={name}
@@ -383,9 +409,8 @@ export default function VocNewPage() {
 
             {/* 자동 저장 동의 */}
             <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              gap: 12, paddingTop: 12, borderTop: '1px solid var(--surface-border)',
-              flexWrap: 'wrap',
+              display: 'flex', alignItems: 'center',
+              paddingTop: 12, borderTop: '1px solid var(--surface-border)',
             }}>
               <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, color: 'var(--text-default)' }}>
                 <span
@@ -398,17 +423,6 @@ export default function VocNewPage() {
                 />
                 이 브라우저에 부서·이름·이메일 기억하기
               </label>
-              <button
-                type="button"
-                onClick={clearStoredRequester}
-                style={{
-                  fontSize: 12, color: 'var(--text-muted)', background: 'none',
-                  border: 0, padding: 0, cursor: 'pointer', textDecoration: 'underline',
-                  fontFamily: 'inherit',
-                }}
-              >
-                저장된 정보 지우기
-              </button>
             </div>
           </div>
 
@@ -419,29 +433,24 @@ export default function VocNewPage() {
             {/* 제품 */}
             <div>
               <label className="field-label">제품<span className="req">*</span></label>
-              <div className="grid grid-cols-2 gap-2" data-error-target={errors.product ? 'true' : undefined}>
+              <div
+                className={`seg-block${errors.product ? ' invalid' : ''}`}
+                style={{ gridTemplateColumns: `repeat(${PRODUCTS.length}, 1fr)` }}
+                role="radiogroup"
+                aria-label="제품"
+                data-error-target={errors.product ? 'true' : undefined}
+              >
                 {PRODUCTS.map(p => (
-                  <div
-                    key={p}
-                    className={`radio-card${product === p ? ' selected' : ''}`}
-                    style={errors.product && product !== p ? { borderColor: 'var(--danger-500)' } : undefined}
-                    onClick={() => { setProduct(p); setErrors(prev => { const { product: _, ...r } = prev; return r }) }}
+                  <button
+                    key={p.value}
+                    type="button"
+                    className={product === p.value ? 'on' : ''}
                     role="radio"
-                    aria-checked={product === p}
-                    tabIndex={0}
-                    onKeyDown={(e: KeyboardEvent) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault()
-                        setProduct(p)
-                        setErrors(prev => { const { product: _, ...r } = prev; return r })
-                      }
-                    }}
+                    aria-checked={product === p.value}
+                    onClick={() => { setProduct(p.value); setErrors(prev => { const { product: _, ...r } = prev; return r }) }}
                   >
-                    <span className="radio-dot" />
-                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-strong)', fontFamily: 'var(--font-mono)' }}>
-                      {p}
-                    </div>
-                  </div>
+                    {p.label}
+                  </button>
                 ))}
               </div>
               <FieldError msg={errors.product} />
