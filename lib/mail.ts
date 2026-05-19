@@ -1,8 +1,10 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-const FROM   = process.env.EMAIL_FROM ?? 'VOC 접수 채널 <noreply@example.com>'
-const SITE   = (process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000').replace(/\/$/, '')
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY)
+}
+const FROM = () => process.env.EMAIL_FROM ?? 'VOC 접수 채널 <noreply@example.com>'
+const SITE = () => (process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 
 /* ─── 공통 HTML 래퍼 ─── */
 function wrap(title: string, body: string) {
@@ -45,7 +47,7 @@ export async function sendSubmissionConfirm(params: {
   product: string
   vocType: string
 }) {
-  const viewUrl = `${SITE}/voc/${params.vocId}?token=${params.token}`
+  const viewUrl = `${SITE()}/voc/${params.vocId}?token=${params.token}`
   const body = `
     <h2 style="margin:0 0 4px;font-size:20px;color:#111827;">VOC가 접수됐습니다</h2>
     <p style="margin:0 0 20px;font-size:14px;color:#6b7280;">제품팀이 검토 후 피드백을 드리겠습니다.</p>
@@ -58,8 +60,8 @@ export async function sendSubmissionConfirm(params: {
     <p style="margin:16px 0 0;font-size:13px;color:#6b7280;">아래 링크를 저장해두시면 언제든지 접수 상태를 확인할 수 있습니다.</p>
     ${btn(viewUrl, '접수 내용 조회하기')}
   `
-  return resend.emails.send({
-    from: FROM, to: params.to,
+  return getResend().emails.send({
+    from: FROM(), to: params.to,
     subject: `[VOC 접수] #${params.vocId} ${params.summary}`,
     html: wrap('VOC 접수 확인', body),
   })
@@ -75,7 +77,7 @@ export async function sendStatusChanged(params: {
   newStatus: string
   changedBy: string
 }) {
-  const viewUrl = `${SITE}/voc/${params.vocId}?token=${params.token}`
+  const viewUrl = `${SITE()}/voc/${params.vocId}?token=${params.token}`
   const body = `
     <h2 style="margin:0 0 4px;font-size:20px;color:#111827;">VOC 처리 상태가 변경됐습니다</h2>
     <p style="margin:0 0 20px;font-size:14px;color:#6b7280;">#${params.vocId} ${params.summary}</p>
@@ -87,8 +89,8 @@ export async function sendStatusChanged(params: {
     <p style="margin:12px 0 0;font-size:13px;color:#6b7280;">담당자: ${params.changedBy}</p>
     ${btn(viewUrl, '상세 내용 확인하기')}
   `
-  return resend.emails.send({
-    from: FROM, to: params.to,
+  return getResend().emails.send({
+    from: FROM(), to: params.to,
     subject: `[VOC 상태 변경] #${params.vocId} → ${params.newStatus}`,
     html: wrap('VOC 상태 변경 알림', body),
   })
@@ -103,7 +105,7 @@ export async function sendCommentAdded(params: {
   author:      string
   commentText: string
 }) {
-  const viewUrl = `${SITE}/voc/${params.vocId}?token=${params.token}`
+  const viewUrl = `${SITE()}/voc/${params.vocId}?token=${params.token}`
   const body = `
     <h2 style="margin:0 0 4px;font-size:20px;color:#111827;">담당자가 댓글을 남겼습니다</h2>
     <p style="margin:0 0 20px;font-size:14px;color:#6b7280;">#${params.vocId} ${params.summary}</p>
@@ -113,8 +115,8 @@ export async function sendCommentAdded(params: {
     </div>
     ${btn(viewUrl, '전체 내용 확인하기')}
   `
-  return resend.emails.send({
-    from: FROM, to: params.to,
+  return getResend().emails.send({
+    from: FROM(), to: params.to,
     subject: `[VOC 댓글] #${params.vocId} ${params.summary}`,
     html: wrap('VOC 댓글 알림', body),
   })
