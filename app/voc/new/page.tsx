@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import type { FormEvent, DragEvent, ChangeEvent, KeyboardEvent } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { PRODUCT_ASSIGNEE_NAME } from '@/lib/mapping'
 
 /* ── 상수 ── */
 const PRODUCTS = [
@@ -490,6 +491,13 @@ export default function VocNewPage() {
                 ))}
               </div>
               <FieldError msg={errors.product} />
+              {product && (
+                <div style={{ display: 'flex', gap: 20, marginTop: 8 }}>
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                    담당자 · 보고자&nbsp;&nbsp;<strong style={{ color: 'var(--text-strong)' }}>{PRODUCT_ASSIGNEE_NAME[product] ?? '-'}</strong>
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* VOC 유형 */}
