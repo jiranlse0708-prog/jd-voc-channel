@@ -9,11 +9,8 @@
  *   GET https://{host}/rest/api/2/user/search?username={이름}
  */
 export const PRODUCT_ASSIGNEE_ID: Record<string, string | null> = {
-  // TODO: 테스트 완료 후 원복
-  // SERVERFILTER: '5a2e4b4df34f35510563ac4c',                    // 정석범
-  // IDFILTER:     '712020:eab47ad1-5185-4f87-ad6e-cf1d7744d516', // 김정태
-  SERVERFILTER: '712020:7cd0960b-466d-41ae-aeee-745541c8fb49', // 이세은 (임시)
-  IDFILTER:     '712020:7cd0960b-466d-41ae-aeee-745541c8fb49', // 이세은 (임시)
+  SERVERFILTER: '5a2e4b4df34f35510563ac4c',                    // 정석범
+  IDFILTER:     '712020:eab47ad1-5185-4f87-ad6e-cf1d7744d516', // 김정태
 }
 
 /** 사람이 읽을 수 있는 담당자 이름 (로그·UI 표시용) */
