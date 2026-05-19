@@ -183,6 +183,7 @@ export default function VocNewPage() {
         if (Array.isArray(d.screenPaths) && d.screenPaths.length > 0)
           setScreenPaths(d.screenPaths)
         if (typeof d.detail     === 'string') setDetail(d.detail)
+        if (typeof d.dueDate    === 'string') setDueDate(d.dueDate)
       } catch { /* 손상된 드래프트는 무시 */ }
     }
 
@@ -199,11 +200,11 @@ export default function VocNewPage() {
     const handle = setTimeout(() => {
       localStorage.setItem(LS.draft, JSON.stringify({
         product, vocType, summary, customer, priority,
-        purpose, screenPaths, detail,
+        purpose, screenPaths, detail, dueDate,
       }))
     }, 500)
     return () => clearTimeout(handle)
-  }, [product, vocType, summary, customer, priority, purpose, screenPaths, detail])
+  }, [product, vocType, summary, customer, priority, purpose, screenPaths, detail, dueDate])
 
   /* ── remember 토글 시: OFF로 바뀌면 즉시 저장값 삭제, ON으로 바뀌면 현재 값 기록 ── */
   useEffect(() => {
@@ -673,9 +674,9 @@ export default function VocNewPage() {
                     const el = e.currentTarget as HTMLInputElement & { showPicker?: () => void }
                     try { el.showPicker?.() } catch {}
                   }}
-                  style={{ paddingRight: dueDate ? 40 : 36, cursor: 'pointer' }}
+                  style={{ paddingRight: dueDate ? 40 : (isTouch ? 36 : undefined), cursor: 'pointer' }}
                 />
-                {/* 달력 아이콘 — 모바일 전용 (데스크탑은 네이티브 아이콘 사용) */}
+                {/* 달력 아이콘 — 터치 기기 전용 */}
                 {!dueDate && isTouch && (
                   <svg
                     aria-hidden="true"
@@ -686,7 +687,7 @@ export default function VocNewPage() {
                     <path d="M2 6h12M5 1.5v3M11 1.5v3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
                   </svg>
                 )}
-                {/* X 버튼 — 날짜 입력 시 */}
+                {/* X 버튼 — 날짜 입력 시 (데스크탑·모바일 공통) */}
                 {dueDate && (
                   <button
                     type="button"
