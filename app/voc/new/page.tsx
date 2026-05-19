@@ -662,13 +662,46 @@ export default function VocNewPage() {
             {/* 기한 */}
             <div>
               <label className="field-label">약속된 기한</label>
-              <input
-                className="input"
-                type="date"
-                value={dueDate}
-                onChange={e => setDueDate(e.target.value)}
-                style={{ maxWidth: 200 }}
-              />
+              <div style={{ position: 'relative', maxWidth: 200 }}>
+                <input
+                  className="input"
+                  type="date"
+                  value={dueDate}
+                  onChange={e => setDueDate(e.target.value)}
+                  style={{ paddingRight: dueDate ? 40 : 36 }}
+                />
+                {/* 달력 아이콘 — 날짜 미입력 시 */}
+                {!dueDate && (
+                  <svg
+                    aria-hidden="true"
+                    width="16" height="16" viewBox="0 0 16 16" fill="none"
+                    style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--text-muted)' }}
+                  >
+                    <rect x="2" y="3" width="12" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.3"/>
+                    <path d="M2 6h12M5 1.5v3M11 1.5v3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                  </svg>
+                )}
+                {/* X 버튼 — 날짜 입력 시 */}
+                {dueDate && (
+                  <button
+                    type="button"
+                    onClick={() => setDueDate('')}
+                    aria-label="기한 지우기"
+                    style={{
+                      position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                      width: 28, height: 28, padding: 0, border: 0, background: 'transparent',
+                      cursor: 'pointer', color: 'var(--text-muted)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      borderRadius: '50%',
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <circle cx="8" cy="8" r="7" fill="var(--gray-200)"/>
+                      <path d="M5 5l6 6M11 5l-6 6" stroke="#fff" strokeWidth="1.6" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                )}
+              </div>
               <p className="field-help">고객사와 협의된 일정 또는 약속된 완료 기한이 있을 경우에만 입력하세요.</p>
             </div>
 
