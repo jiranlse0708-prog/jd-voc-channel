@@ -197,7 +197,7 @@ body {
 .input:hover:not(:disabled), .select:hover:not(:disabled), .textarea:hover:not(:disabled) { border-color: var(--gray-400); }
 .input:focus, .select:focus, .textarea:focus { border-color: var(--brand-500); box-shadow: 0 0 0 3px var(--brand-100); }
 .input::placeholder, .textarea::placeholder { color: var(--gray-200); font-size: 13px; }
-input[type="date"].input::-webkit-calendar-picker-indicator { display: none; }
+input[type="date"].input::-webkit-calendar-picker-indicator { opacity: 0; cursor: pointer; }
 .input.invalid, .select.invalid, .textarea.invalid { border-color: var(--danger-500); box-shadow: 0 0 0 3px var(--danger-50); }
 .input:disabled, .textarea:disabled, .select:disabled { background: var(--surface-sunken); color: var(--text-disabled); cursor: not-allowed; }
 
