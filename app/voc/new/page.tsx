@@ -149,6 +149,9 @@ export default function VocNewPage() {
   /* 스크롤 진행률 (0 ~ 1) */
   const [scrollProgress, setScrollProgress] = useState(0)
 
+  /* 모바일 여부 (달력 아이콘 표시 제어) */
+  const [isMobile, setIsMobile] = useState(false)
+
   /* 모바일 키보드 감지 (visualViewport) */
   const [keyboardOpen, setKeyboardOpen] = useState(false)
 
@@ -233,6 +236,14 @@ export default function VocNewPage() {
       window.removeEventListener('scroll', update)
       window.removeEventListener('resize', update)
     }
+  }, [])
+
+  /* ── 모바일 감지 (달력 아이콘 제어) ── */
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 640)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
   }, [])
 
   /* ── 모바일 키보드 감지 ── */
@@ -670,11 +681,10 @@ export default function VocNewPage() {
                   onChange={e => setDueDate(e.target.value)}
                   style={{ paddingRight: dueDate ? 40 : 36 }}
                 />
-                {/* 달력 아이콘 — 날짜 미입력 시, 모바일 전용 (데스크탑은 네이티브 아이콘 사용) */}
-                {!dueDate && (
+                {/* 달력 아이콘 — 모바일 전용 (데스크탑은 네이티브 아이콘 사용) */}
+                {!dueDate && isMobile && (
                   <svg
                     aria-hidden="true"
-                    className="date-cal-icon"
                     width="16" height="16" viewBox="0 0 16 16" fill="none"
                     style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--text-muted)' }}
                   >

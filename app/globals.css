@@ -354,7 +354,6 @@ body {
 .show-mobile { display: none; }
 .show-desktop { display: contents; }
 .show-mobile-block { display: none; }
-.date-cal-icon { display: none; }
 
 .divider { height: 1px; background: var(--surface-border); border: 0; margin: 0; }
 
@@ -397,7 +396,6 @@ body {
   .show-desktop { display: none !important; }
   .show-mobile { display: contents; }
   .show-mobile-block { display: inline-flex; }
-  .date-cal-icon { display: block; }
 
   /* 하단 sticky 제출 바 */
   .submit-bar {
