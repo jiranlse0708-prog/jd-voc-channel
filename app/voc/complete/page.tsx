@@ -73,7 +73,7 @@ export default async function CompletePage({ searchParams }: Props) {
               VOC가 접수됐습니다
             </h1>
             <p style={{ fontSize: 14, color: 'var(--text-muted)', margin: 0 }}>
-              제품팀이 검토 후 피드백을 드리겠습니다.
+              진행 상황은 JIRA에서 확인할 수 있습니다.
             </p>
           </div>
 
@@ -139,49 +139,6 @@ export default async function CompletePage({ searchParams }: Props) {
               )
             )}
 
-            {/* 진행 상황 조회 링크 */}
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-strong)', marginBottom: 8 }}>
-                진행 상황 조회 링크
-              </div>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                padding: '10px 14px',
-                background: 'var(--surface-canvas)',
-                border: '1px solid var(--surface-border)',
-                borderRadius: 'var(--r-md)',
-              }}>
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, color: 'var(--text-muted)' }}>
-                  <path d="M6.5 9.5l3-3M9.5 10.5l1-1a3.535 3.535 0 10-5-5l-1 1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-                  <path d="M6.5 5.5l-1 1a3.535 3.535 0 005 5l1-1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-                </svg>
-                <span style={{
-                  fontSize: 12, fontFamily: 'var(--font-mono)',
-                  color: 'var(--brand-700)', flex: 1,
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>
-                  {viewUrl}
-                </span>
-                <Link
-                  href={viewUrl}
-                  className="btn btn-sm btn-secondary"
-                  style={{ flexShrink: 0 }}
-                >
-                  조회하기
-                </Link>
-              </div>
-              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 8 }}>
-                이 링크를 저장해두시면 언제든지 접수 상태를 확인할 수 있습니다.
-              </p>
-            </div>
-
-            {/* 처리 안내 */}
-            <div style={{ paddingTop: 4 }}>
-              <div style={{ fontSize: 12, color: 'var(--text-subtle)', lineHeight: 1.6 }}>
-                • 처리 기준: 접수일 기준 <strong style={{ color: 'var(--text-muted)' }}>7일 이내</strong> 피드백 목표<br />
-                • 문의: 제품팀 메신저 채널 또는 담당자에게 직접 연락
-              </div>
-            </div>
           </div>
 
           {/* 하단 버튼 */}
