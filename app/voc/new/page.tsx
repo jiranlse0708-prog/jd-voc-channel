@@ -148,8 +148,8 @@ export default function VocNewPage() {
   /* 스크롤 진행률 (0 ~ 1) */
   const [scrollProgress, setScrollProgress] = useState(0)
 
-  /* 모바일 여부 (달력 아이콘 표시 제어) */
-  const [isMobile, setIsMobile] = useState(false)
+  /* 터치 기기 여부 (달력 아이콘 표시 제어) */
+  const [isTouch, setIsTouch] = useState(false)
 
   /* 모바일 키보드 감지 (visualViewport) */
   const [keyboardOpen, setKeyboardOpen] = useState(false)
@@ -237,12 +237,9 @@ export default function VocNewPage() {
     }
   }, [])
 
-  /* ── 모바일 감지 (달력 아이콘 제어) ── */
+  /* ── 터치 기기 감지 (달력 아이콘 제어) ── */
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth <= 640)
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
+    setIsTouch('ontouchstart' in window || navigator.maxTouchPoints > 0)
   }, [])
 
   /* ── 모바일 키보드 감지 ── */
@@ -672,10 +669,14 @@ export default function VocNewPage() {
                   type="date"
                   value={dueDate}
                   onChange={e => setDueDate(e.target.value)}
-                  style={{ paddingRight: dueDate ? 40 : 36 }}
+                  onClick={e => {
+                    const el = e.currentTarget as HTMLInputElement & { showPicker?: () => void }
+                    try { el.showPicker?.() } catch {}
+                  }}
+                  style={{ paddingRight: dueDate ? 40 : 36, cursor: 'pointer' }}
                 />
                 {/* 달력 아이콘 — 모바일 전용 (데스크탑은 네이티브 아이콘 사용) */}
-                {!dueDate && isMobile && (
+                {!dueDate && isTouch && (
                   <svg
                     aria-hidden="true"
                     width="16" height="16" viewBox="0 0 16 16" fill="none"
