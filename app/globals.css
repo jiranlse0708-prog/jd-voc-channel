@@ -196,7 +196,7 @@ body {
 .textarea { padding: 10px 12px; height: auto; min-height: 96px; resize: vertical; line-height: 1.5; }
 .input:hover:not(:disabled), .select:hover:not(:disabled), .textarea:hover:not(:disabled) { border-color: var(--gray-400); }
 .input:focus, .select:focus, .textarea:focus { border-color: var(--brand-500); box-shadow: 0 0 0 3px var(--brand-100); }
-.input::placeholder, .textarea::placeholder { color: var(--gray-200); }
+.input::placeholder, .textarea::placeholder { color: var(--gray-200); font-size: 13px; }
 .input.invalid, .select.invalid, .textarea.invalid { border-color: var(--danger-500); box-shadow: 0 0 0 3px var(--danger-50); }
 .input:disabled, .textarea:disabled, .select:disabled { background: var(--surface-sunken); color: var(--text-disabled); cursor: not-allowed; }
 
@@ -389,8 +389,8 @@ body {
   /* 카드 자체 패딩은 기본값 유지 */
   .card { padding: 16px; }
 
-  /* 카드와 화면 좌우 끝 사이 여백 축소 — 콘텐츠 폭 확보 */
-  .page-container { padding: 0 4px; }
+  /* 카드와 화면 좌우 끝 사이 여백 제거 - 모바일 폭 최대 활용 */
+  .page-container { padding: 0; }
 
   /* 데스크탑/모바일 분기 */
   .show-desktop { display: none !important; }

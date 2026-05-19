@@ -130,7 +130,7 @@ export default function VocNewPage() {
   const [screenPaths, setScreenPaths] = useState<string[]>([''])
   const [detail,      setDetail]      = useState('')
 
-  /* 첨부·기한 */
+  /* 참고 화면·기한 */
   const [dueDate,    setDueDate]    = useState('')
   const [files,      setFiles]      = useState<File[]>([])
   const [isDragging, setIsDragging] = useState(false)
@@ -284,7 +284,7 @@ export default function VocNewPage() {
     if (newTotal > MAX_TOTAL_BYTES) {
       setErrors(prev => ({
         ...prev,
-        files: `총 첨부 용량이 200MB를 초과합니다. (추가 후 ${fmtSize(newTotal)})`,
+        files: `총 참고 화면 용량이 200MB를 초과합니다. (추가 후 ${fmtSize(newTotal)})`,
       }))
       return
     }
@@ -463,9 +463,9 @@ export default function VocNewPage() {
             </div>
           </div>
 
-          {/* ══ 2. 분류 ══ */}
+          {/* ══ 2. 요구사항 구분 ══ */}
           <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <SectionTitle>분류</SectionTitle>
+            <SectionTitle>요구사항 구분</SectionTitle>
 
             {/* 제품 */}
             <div>
@@ -524,15 +524,15 @@ export default function VocNewPage() {
               <FieldError msg={errors.vocType} />
             </div>
 
-            {/* 고객사 / 우선순위 */}
+            {/* 요청 고객사 / 우선순위 */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="field-label">고객사</label>
+                <label className="field-label">요청 고객사</label>
                 <input
                   className="input"
                   value={customer}
                   onChange={e => setCustomer(e.target.value)}
-                  placeholder="해당 고객사가 있는 경우에만"
+                  placeholder="요청 고객사가 있는 경우에만 작성"
                 />
               </div>
               <div>
@@ -577,8 +577,8 @@ export default function VocNewPage() {
                 className={`textarea${errors.purpose ? ' invalid' : ''}`}
                 value={purpose}
                 onChange={e => { setPurpose(e.target.value); setErrors(p => { const { purpose: _, ...r } = p; return r }) }}
-                rows={3}
-                minHeight={84}
+                rows={2}
+                minHeight={62}
                 placeholder="왜 이 요청을 하게 됐는지 배경을 설명해 주세요."
               />
               <FieldError msg={errors.purpose} />
@@ -648,9 +648,9 @@ export default function VocNewPage() {
             </div>
           </div>
 
-          {/* ══ 4. 첨부 및 기한 ══ */}
+          {/* ══ 4. 참고 화면 및 기한 ══ */}
           <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <SectionTitle>첨부 및 기한</SectionTitle>
+            <SectionTitle>참고 화면 및 기한</SectionTitle>
 
             {/* 기한 */}
             <div>
@@ -665,11 +665,11 @@ export default function VocNewPage() {
               <p className="field-help">고객사와 협의된 일정 또는 약속된 완료 기한이 있을 경우에만 입력하세요.</p>
             </div>
 
-            {/* 첨부파일 */}
+            {/* 참고 화면 */}
             <div>
-              <label className="field-label">첨부파일</label>
+              <label className="field-label">참고 화면</label>
               <p className="field-help" style={{ marginTop: 0, marginBottom: 8 }}>
-                화면 캡쳐본, 고객사 요청 원본 등 이해에 도움이 될만한 자료를 첨부해주세요.
+                화면 캡쳐본, 고객사 요청 원본 등 이해에 도움이 될만한 자료를 올려주세요.
               </p>
 
               <div
@@ -708,9 +708,6 @@ export default function VocNewPage() {
                 <div className="show-mobile">
                   <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-strong)' }}>
                     탭하여 파일 선택
-                  </div>
-                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-                    (Ctrl + V 가능)
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
                     PNG · JPG · PDF · DOCX 등 — 파일당 최대 50MB

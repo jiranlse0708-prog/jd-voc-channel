@@ -96,7 +96,7 @@ export default async function VocViewPage({ params, searchParams }: Props) {
   const row = data as VocRow
   if (row.view_token !== token) notFound()
 
-  /* 첨부파일 서명 URL 생성 */
+  /* 참고 화면 서명 URL 생성 */
   const signedAttachments = await Promise.all(
     (row.attachments ?? []).map(async (a) => {
       const { data: url } = await supabase.storage
@@ -176,7 +176,7 @@ export default async function VocViewPage({ params, searchParams }: Props) {
                   {VOC_TYPE_LABEL[row.voc_type] ?? row.voc_type}
                 </span>
               </Field>
-              {row.customer && <Field label="고객사">{row.customer}</Field>}
+              {row.customer && <Field label="요청 고객사">{row.customer}</Field>}
               <Field label="우선순위">{PRIORITY_LABEL[row.priority] ?? row.priority}</Field>
               {row.due_date && <Field label="요청 기한">{row.due_date}</Field>}
             </div>
@@ -192,10 +192,10 @@ export default async function VocViewPage({ params, searchParams }: Props) {
             </div>
           </div>
 
-          {/* ─── 첨부파일 ─── */}
+          {/* ─── 참고 화면 ─── */}
           {signedAttachments.length > 0 && (
             <div className="card" style={{ marginBottom: 16 }}>
-              <SectionLabel>첨부파일</SectionLabel>
+              <SectionLabel>참고 화면</SectionLabel>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {signedAttachments.map((a, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', background: 'var(--surface-canvas)', border: '1px solid var(--surface-border)', borderRadius: 'var(--r-md)' }}>
