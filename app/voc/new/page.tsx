@@ -180,7 +180,6 @@ export default function VocNewPage() {
         if (Array.isArray(d.screenPaths) && d.screenPaths.length > 0)
           setScreenPaths(d.screenPaths)
         if (typeof d.detail     === 'string') setDetail(d.detail)
-        if (typeof d.dueDate    === 'string') setDueDate(d.dueDate)
       } catch { /* 손상된 드래프트는 무시 */ }
     }
 
@@ -197,11 +196,11 @@ export default function VocNewPage() {
     const handle = setTimeout(() => {
       localStorage.setItem(LS.draft, JSON.stringify({
         product, vocType, summary, customer, priority,
-        purpose, screenPaths, detail, dueDate,
+        purpose, screenPaths, detail,
       }))
     }, 500)
     return () => clearTimeout(handle)
-  }, [product, vocType, summary, customer, priority, purpose, screenPaths, detail, dueDate])
+  }, [product, vocType, summary, customer, priority, purpose, screenPaths, detail])
 
   /* ── remember 토글 시: OFF로 바뀌면 즉시 저장값 삭제, ON으로 바뀌면 현재 값 기록 ── */
   useEffect(() => {
