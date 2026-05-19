@@ -629,7 +629,7 @@ export default function VocNewPage() {
                   style={{
                     alignSelf: 'flex-end',
                     display: 'inline-flex', alignItems: 'center', gap: 4,
-                    fontSize: 12, fontWeight: 600, color: 'var(--text-muted)',
+                    fontSize: 12, fontWeight: 400, color: 'var(--text-subtle)',
                     background: 'none', border: 0, padding: '4px 0',
                     cursor: 'pointer', fontFamily: 'inherit',
                   }}
