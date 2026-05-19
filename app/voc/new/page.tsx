@@ -767,7 +767,7 @@ export default function VocNewPage() {
               />
 
               <p className="field-help">
-                화면 캡쳐본, 고객사 요청 원본 등 이해에 도움이 될만한 자료를 올려주세요.
+                화면 스크린샷, 고객사 요청 원본 등 이해에 도움이 될만한 자료를 올려주세요.
               </p>
 
               {/* 파일 에러 */}
