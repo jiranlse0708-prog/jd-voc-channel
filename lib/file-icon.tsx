@@ -38,20 +38,20 @@ export function FileExtBadge({ name, size = 'md' }: Props) {
   const label = info.label
 
   const w = size === 'md' ? 52 : 36
-  const h = size === 'md' ? 64 : 46
+  const h = size === 'md' ? 58 : 40
 
   return (
     <svg
       width={w}
       height={h}
-      viewBox="0 0 44 56"
+      viewBox="0 0 44 50"
       fill="none"
       style={{ flexShrink: 0 }}
       aria-label={`${label} 파일`}
     >
       {/* 종이 본체 */}
       <path
-        d="M5 1h25l9 9v44a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z"
+        d="M5 1h25l9 9v38a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z"
         fill="#ffffff"
         stroke="#d1d5db"
         strokeWidth="1.4"
@@ -65,11 +65,11 @@ export function FileExtBadge({ name, size = 'md' }: Props) {
         strokeLinejoin="round"
       />
       {/* 하단 색상 라벨 박스 */}
-      <rect x="4" y="34" width="35" height="14" rx="2" fill={info.color} />
+      <rect x="4" y="28" width="35" height="14" rx="2" fill={info.color} />
       {/* 라벨 텍스트 */}
       <text
         x="21.5"
-        y="44"
+        y="38"
         textAnchor="middle"
         fontSize={label.length >= 4 ? 8 : 10}
         fontWeight="800"
