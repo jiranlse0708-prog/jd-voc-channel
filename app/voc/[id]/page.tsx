@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase-server'
-import { VOC_TYPE_LABEL, PRIORITY_LABEL } from '@/lib/mapping'
+import { VOC_TYPE_LABEL, PRIORITY_LABEL, PRODUCT_LABEL } from '@/lib/mapping'
 import Topbar from '@/components/Topbar'
 import AttachmentList from '@/components/AttachmentList'
 
@@ -177,7 +177,10 @@ export default async function VocViewPage({ params, searchParams }: Props) {
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 24 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: 'var(--text-strong)', lineHeight: 1.4, wordBreak: 'break-word' }}>
-                {row.summary}
+                <span style={{ color: 'var(--brand-600)' }}>
+                  [{PRODUCT_LABEL[row.product] ?? row.product}]
+                </span>
+                {' '}{row.summary}
               </h1>
               <p style={{ margin: '6px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>
                 접수일: {fmtDate(row.created_at)}

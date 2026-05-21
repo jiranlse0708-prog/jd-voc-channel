@@ -19,6 +19,11 @@ export const PRODUCT_ASSIGNEE_NAME: Record<string, string> = {
   IDFILTER:     '김정태',
 }
 
+export const PRODUCT_LABEL: Record<string, string> = {
+  SERVERFILTER: 'ServerFilter',
+  IDFILTER:     'IDFilter',
+}
+
 export const VOC_TYPE_LABEL: Record<string, string> = {
   inquiry: '단순문의',
   improve: '개선',
