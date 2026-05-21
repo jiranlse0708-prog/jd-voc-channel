@@ -103,7 +103,7 @@ export async function sendVocLookupLinks(params: {
 }) {
   const rows = params.items.map(it => {
     const url = `${SITE()}/voc/${it.id}?token=${it.token}`
-    const date = new Date(it.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' })
+    const date = new Date(it.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Seoul' })
     return `<tr>
       <td style="padding:12px 0;border-bottom:1px solid #f3f4f6;font-size:13px;color:#111827;">
         <a href="${url}" style="color:#F78121;text-decoration:none;font-weight:600;">#${it.id} ${it.summary}</a>
