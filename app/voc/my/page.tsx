@@ -21,14 +21,6 @@ const STATUS_DISPLAY: Record<string, { cls: string; label: string }> = {
 const FILTER_OPTIONS = ['전체', '접수', '처리 중', '완료', '보류'] as const
 type FilterValue = typeof FILTER_OPTIONS[number]
 
-/* ── VOC 유형 글자색 (목록에서는 글자색만 차별화, 상태 칩과의 시각 경쟁 방지) ── */
-const VOC_TYPE_COLOR: Record<string, string> = {
-  inquiry: 'var(--gray-700)',
-  improve: 'var(--info-700)',
-  defect:  'var(--danger-700)',
-  new:     '#6d28d9',
-}
-
 /* ── 타입 ── */
 interface VocItem {
   id:               number
@@ -322,15 +314,7 @@ export default function VocMyPage() {
                       return (
                         <tr key={item.id} onClick={() => goDetail(item)} style={{ cursor: 'pointer' }}>
                           <td>{item.product}</td>
-                          <td>
-                            <span style={{
-                              color: VOC_TYPE_COLOR[item.voc_type] ?? 'var(--text-default)',
-                              fontSize: 12,
-                              fontWeight: 600,
-                            }}>
-                              {VOC_TYPE_LABEL[item.voc_type] ?? item.voc_type}
-                            </span>
-                          </td>
+                          <td>{VOC_TYPE_LABEL[item.voc_type] ?? item.voc_type}</td>
                           <td className="voc-title-cell">{item.summary}</td>
                           <td>
                             <span className={`status ${status.cls}`}>
@@ -412,12 +396,7 @@ export default function VocMyPage() {
                         {item.summary}
                       </p>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center', fontSize: 12, color: 'var(--text-muted)' }}>
-                        <span style={{
-                          color: VOC_TYPE_COLOR[item.voc_type] ?? 'var(--text-default)',
-                          fontWeight: 600,
-                        }}>
-                          {VOC_TYPE_LABEL[item.voc_type] ?? item.voc_type}
-                        </span>
+                        <span>{VOC_TYPE_LABEL[item.voc_type] ?? item.voc_type}</span>
                         <span>·</span>
                         <span>{item.product}</span>
                         {item.comments_count > 0 && (
