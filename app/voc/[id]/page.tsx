@@ -342,14 +342,9 @@ export default async function VocViewPage({ params, searchParams }: Props) {
 
           {/* ─── 담당자 코멘트 ─── */}
           {comments.length > 0 && (
-            <div style={{
-              background: 'var(--surface-canvas)',
-              border: '1px solid var(--surface-border)',
-              borderRadius: 'var(--r-lg)',
-              padding: '20px 24px',
-            }}>
+            <div className="card">
               {/* 헤더 */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16, paddingBottom: 14, borderBottom: '1px solid var(--surface-border)' }}>
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
                   <path d="M14 10a2 2 0 01-2 2H5l-3 3V4a2 2 0 012-2h8a2 2 0 012 2v6z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
                 </svg>
@@ -358,29 +353,28 @@ export default async function VocViewPage({ params, searchParams }: Props) {
                 </span>
               </div>
 
-              {/* 댓글 목록 */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {/* 댓글 목록 — 구분선만, 박스 없음 */}
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {comments.map((c, i) => (
-                  <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                  <div key={i} style={{
+                    display: 'flex', gap: 12, alignItems: 'flex-start',
+                    paddingTop: i === 0 ? 0 : 16,
+                    paddingBottom: 16,
+                    borderBottom: i < comments.length - 1 ? '1px solid var(--surface-border)' : 'none',
+                  }}>
                     {/* 아바타 */}
                     <div style={{
-                      width: 32, height: 32, borderRadius: '50%',
+                      width: 34, height: 34, borderRadius: '50%',
                       background: 'var(--brand-500)', color: '#fff',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 12, fontWeight: 700, flexShrink: 0,
+                      fontSize: 13, fontWeight: 700, flexShrink: 0,
                     }}>
                       {(c.author ?? '?').slice(0, 1)}
                     </div>
-                    {/* 말풍선 */}
-                    <div style={{
-                      flex: 1, minWidth: 0,
-                      background: 'var(--surface-card)',
-                      border: '1px solid var(--surface-border)',
-                      borderRadius: 'var(--r-md)',
-                      padding: '10px 14px',
-                    }}>
+                    {/* 내용 */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-strong)' }}>{c.author}</span>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-strong)' }}>{c.author}</span>
                         <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{fmtDate(c.created_at)}</span>
                       </div>
                       <div style={{ fontSize: 13, color: 'var(--text-default)' }}>{renderJira(c.body)}</div>
