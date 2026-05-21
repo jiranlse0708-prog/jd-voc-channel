@@ -403,14 +403,16 @@ body {
 .voc-desktop-only { display: block; }
 .voc-mobile-list  { display: none; flex-direction: column; gap: 10px; }
 .filter-chips-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
-.voc-my-main      { background: var(--surface-canvas); padding: 32px 16px 80px; }
+
+/* 공용: VOC 페이지(my, 상세 등) main + container 좌우 여백 — 모바일에서 축소 */
+.voc-page-main      { background: var(--surface-canvas); padding: 32px 16px 80px; }
 
 @media (max-width: 640px) {
   .voc-desktop-only { display: none; }
   .voc-mobile-list  { display: flex; }
   /* 모바일: 페이지 좌우 여백 축소 (main + container 둘 다) */
-  .voc-my-main { padding: 24px 12px 60px; }
-  .voc-my-container { padding-left: 0; padding-right: 0; }
+  .voc-page-main { padding: 24px 12px 60px; }
+  .voc-page-container { padding-left: 0; padding-right: 0; }
   /* 모바일: 필터 칩 컴팩트 + 카드와 간격 확대 */
   .filter-chips-row { gap: 4px; margin-bottom: 24px; }
   .filter-chips-row .btn-sm { padding-left: 8px; padding-right: 8px; font-size: 12px; }

@@ -136,8 +136,8 @@ export default function VocMyPage() {
       <Topbar />
 
       {/* ─── 본문 ─── */}
-      <main className="flex-1 voc-my-main">
-        <div className="page-container-wide voc-my-container" style={{ width: '100%', maxWidth: 1040, margin: '0 auto' }}>
+      <main className="flex-1 voc-page-main">
+        <div className="page-container-wide voc-page-container" style={{ width: '100%', maxWidth: 1040, margin: '0 auto' }}>
 
           {/* 헤더 */}
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 24 }}>
