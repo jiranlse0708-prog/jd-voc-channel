@@ -300,7 +300,7 @@ export default async function VocViewPage({ params, searchParams }: Props) {
                         <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-strong)' }}>{c.author}</span>
                         <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{fmtDate(c.created_at)}</span>
                       </div>
-                      <p style={{ margin: 0, fontSize: 14, color: 'var(--text-default)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{c.body}</p>
+                      <p style={{ margin: 0, fontSize: 13, color: 'var(--text-default)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{c.body}</p>
                     </div>
                   </div>
                 ))}
