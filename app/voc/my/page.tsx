@@ -299,6 +299,7 @@ export default function VocMyPage() {
                 <table className="tbl">
                   <thead>
                     <tr>
+                      <th style={{ width: 56 }}>순번</th>
                       <th style={{ width: 110 }}>제품</th>
                       <th style={{ width: 84 }}>유형</th>
                       <th>제목</th>
@@ -309,10 +310,11 @@ export default function VocMyPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredItems.map(item => {
+                    {filteredItems.map((item, idx) => {
                       const status = STATUS_DISPLAY[item.current_status] ?? { cls: 'status-received', label: item.current_status }
                       return (
                         <tr key={item.id} onClick={() => goDetail(item)} style={{ cursor: 'pointer' }}>
+                          <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>{idx + 1}</td>
                           <td>{item.product}</td>
                           <td>{VOC_TYPE_LABEL[item.voc_type] ?? item.voc_type}</td>
                           <td className="voc-title-cell">{item.summary}</td>
