@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { FileExtBadge } from '@/lib/file-icon'
 
 function fmtSize(b: number) {
   if (b < 1024) return `${b} B`
@@ -66,10 +67,7 @@ export default function FilePreview({ file, onRemove }: Props) {
             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
           />
         ) : (
-          <svg width="32" height="32" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <rect x="2" y="1" width="12" height="14" rx="2" stroke="currentColor" strokeWidth="1.2" />
-            <path d="M5 5h6M5 8h6M5 11h4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-          </svg>
+          <FileExtBadge name={file.name} />
         )}
       </div>
 

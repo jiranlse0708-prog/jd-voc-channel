@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { FileExtBadge } from '@/lib/file-icon'
 
 interface SignedAttachment {
   name:      string
@@ -130,13 +131,12 @@ export default function AttachmentList({ items }: { items: SignedAttachment[] })
               border: '1px solid var(--surface-border)',
               borderRadius: 'var(--r-md)',
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
-                  <rect x="2" y="1" width="12" height="14" rx="2" stroke="currentColor" strokeWidth="1.4" />
-                  <path d="M5 5h6M5 8h6M5 11h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-                </svg>
-                <span style={{ fontSize: 13, color: 'var(--text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.name}</span>
-                <span style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap', flexShrink: 0 }}>{fmtSize(a.size)}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
+                <FileExtBadge name={a.name} size="sm" />
+                <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, gap: 2 }}>
+                  <span style={{ fontSize: 13, color: 'var(--text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.name}</span>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{fmtSize(a.size)}</span>
+                </div>
               </div>
               {a.signedUrl && (
                 <a href={a.signedUrl} download={a.name} className="btn btn-sm btn-secondary" style={{ flexShrink: 0 }}>
