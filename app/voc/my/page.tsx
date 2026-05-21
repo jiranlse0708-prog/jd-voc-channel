@@ -296,7 +296,7 @@ export default function VocMyPage() {
                       <th style={{ width: 84 }}>유형</th>
                       <th>제목</th>
                       <th style={{ width: 90 }}>상태</th>
-                      <th style={{ width: 80 }}>💬 댓글</th>
+                      <th style={{ width: 80 }}>댓글</th>
                       <th style={{ width: 110 }}>JIRA</th>
                       <th style={{ width: 110 }}>접수일</th>
                     </tr>
