@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 
 function fmtSize(b: number) {
   if (b < 1024) return `${b} B`
@@ -20,17 +20,21 @@ interface Props {
  */
 export default function FilePreview({ file, onRemove }: Props) {
   const isImage = file.type.startsWith('image/')
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
-  const previewUrl = useMemo(
-    () => (isImage ? URL.createObjectURL(file) : null),
-    [file, isImage]
-  )
-
+  /* effect 안에서 url을 생성하고 동일 url을 cleanup에서 revoke.
+   * React Strict Mode가 effect를 두 번 실행해도 cleanup → 재생성 흐름으로 안전. */
   useEffect(() => {
-    return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl)
+    if (!isImage) {
+      setPreviewUrl(null)
+      return
     }
-  }, [previewUrl])
+    const url = URL.createObjectURL(file)
+    setPreviewUrl(url)
+    return () => {
+      URL.revokeObjectURL(url)
+    }
+  }, [file, isImage])
 
   return (
     <div style={{
