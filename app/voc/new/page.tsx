@@ -751,38 +751,18 @@ export default function VocNewPage() {
                 onDrop={onDrop}
                 onClick={() => fileInputRef.current?.click()}
               >
-                <div style={{
-                  width: 36, height: 36, borderRadius: 8,
-                  background: 'var(--surface-card)', border: '1px solid var(--surface-border)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'var(--text-muted)',
-                }}>
-                  <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
-                    <path d="M8 11V3m0 0L5 6m3-3l3 3M3 12v1a1 1 0 001 1h8a1 1 0 001-1v-1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ color: isDragging ? 'var(--brand-500)' : 'var(--text-muted)', transition: 'color 0.12s' }}>
+                  <path d="M12 16V4M12 4l-4 4M12 4l4 4M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-strong)' }}>
+                  파일 끌어놓기 또는 <span style={{ color: 'var(--brand-600)', fontWeight: 600 }}>클릭하여 선택</span>
                 </div>
-                {/* 데스크탑 안내 */}
+                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                  이미지 · PDF · 문서 — 파일당 최대 50MB
+                </div>
                 <div className="show-desktop">
-                  <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-strong)' }}>
-                    파일을 드래그하거나{' '}
-                    <span style={{ color: 'var(--brand-700)', textDecoration: 'underline' }}>찾아보기</span>
-                  </div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
-                    PNG · JPG · PDF · DOCX · PPTX · XLSX · HWP · TXT — 파일당 최대 50MB
-                  </div>
-                  <div style={{ fontSize: 11, color: 'var(--text-subtle)', display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                    <kbd>Ctrl</kbd><span>+</span><kbd>V</kbd>
-                    <span>로 스크린샷을 바로 붙여넣을 수 있어요</span>
-                  </div>
-                </div>
-
-                {/* 모바일 안내 */}
-                <div className="show-mobile">
-                  <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-strong)' }}>
-                    탭하여 파일 선택
-                  </div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
-                    PNG · JPG · PDF · DOCX 등 — 파일당 최대 50MB
+                  <div style={{ fontSize: 11, color: 'var(--text-subtle)', marginTop: 2 }}>
+                    클립보드 스크린샷은 Ctrl + V로 바로 붙여넣을 수 있어요
                   </div>
                 </div>
               </div>
