@@ -223,7 +223,17 @@ export default function VocMyPage() {
 
           {/* ─── 상태 필터 ─── */}
           {email && !showEmailForm && !loading && items.length > 0 && (
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
+            <div
+              className="filter-chips-row"
+              style={{
+                display: 'flex',
+                gap: 6,
+                flexWrap: 'nowrap',
+                marginBottom: 16,
+                overflowX: 'auto',
+                WebkitOverflowScrolling: 'touch',
+              }}
+            >
               {FILTER_OPTIONS.map(opt => {
                 const count = opt === '전체'
                   ? items.length
@@ -241,6 +251,7 @@ export default function VocMyPage() {
                       fontWeight: 500,
                       opacity: isDisabled ? 0.45 : 1,
                       cursor: isDisabled ? 'not-allowed' : 'pointer',
+                      flexShrink: 0,
                     }}
                   >
                     {opt} <span style={{ opacity: 0.7, marginLeft: 4 }}>{count}</span>
