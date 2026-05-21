@@ -30,6 +30,7 @@ interface VocItem {
   summary:          string
   current_status:   string
   jira_issue_key:   string | null
+  jira_url:         string | null
   comments_count:   number
   created_at:       string
 }
@@ -221,13 +222,19 @@ export default function VocMyPage() {
                   ? items.length
                   : items.filter(i => i.current_status === opt).length
                 const isActive = filter === opt
+                const isDisabled = count === 0 && opt !== '전체'
                 return (
                   <button
                     key={opt}
                     type="button"
-                    onClick={() => setFilter(opt)}
+                    onClick={() => { if (!isDisabled) setFilter(opt) }}
+                    disabled={isDisabled}
                     className={`btn btn-sm ${isActive ? 'btn-primary' : 'btn-ghost'}`}
-                    style={{ fontWeight: 500 }}
+                    style={{
+                      fontWeight: 500,
+                      opacity: isDisabled ? 0.45 : 1,
+                      cursor: isDisabled ? 'not-allowed' : 'pointer',
+                    }}
                   >
                     {opt} <span style={{ opacity: 0.7, marginLeft: 4 }}>{count}</span>
                   </button>
@@ -285,13 +292,12 @@ export default function VocMyPage() {
                 <table className="tbl">
                   <thead>
                     <tr>
-                      <th style={{ width: 64 }}>No</th>
                       <th style={{ width: 110 }}>제품</th>
                       <th style={{ width: 84 }}>유형</th>
                       <th>제목</th>
                       <th style={{ width: 90 }}>상태</th>
-                      <th style={{ width: 64 }} title="담당자 코멘트 수">💬</th>
-                      <th style={{ width: 100 }}>JIRA</th>
+                      <th style={{ width: 80 }}>💬 댓글</th>
+                      <th style={{ width: 110 }}>JIRA</th>
                       <th style={{ width: 110 }}>접수일</th>
                     </tr>
                   </thead>
@@ -300,7 +306,6 @@ export default function VocMyPage() {
                       const status = STATUS_DISPLAY[item.current_status] ?? { cls: 'status-received', label: item.current_status }
                       return (
                         <tr key={item.id} onClick={() => goDetail(item)} style={{ cursor: 'pointer' }}>
-                          <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>#{item.id}</td>
                           <td>{item.product}</td>
                           <td>
                             <span className={`cat cat-${item.voc_type}`}>
@@ -320,12 +325,27 @@ export default function VocMyPage() {
                             color: item.comments_count > 0 ? 'var(--text-strong)' : 'var(--text-subtle)',
                             fontWeight: item.comments_count > 0 ? 600 : 400,
                           }}>
-                            {item.comments_count > 0 ? item.comments_count : '–'}
+                            {item.comments_count}
                           </td>
-                          <td style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: item.jira_issue_key ? 'var(--brand-600)' : 'var(--text-muted)' }}>
-                            {item.jira_issue_key ?? '–'}
+                          <td onClick={e => e.stopPropagation()} style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>
+                            {item.jira_issue_key && item.jira_url ? (
+                              <a
+                                href={item.jira_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ color: 'var(--brand-600)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                              >
+                                {item.jira_issue_key}
+                                <svg width="10" height="10" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                  <path d="M6 3H3v10h10v-3M9 3h4v4M13 3L7.5 8.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                              </a>
+                            ) : (
+                              <span style={{ color: 'var(--text-subtle)' }}>–</span>
+                            )}
                           </td>
-                          <td style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                          <td style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}
+                              title={fmtDate(item.created_at)}>
                             {fmtDateShort(item.created_at)}
                           </td>
                         </tr>
@@ -350,9 +370,20 @@ export default function VocMyPage() {
                       style={{ cursor: 'pointer', padding: 16 }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                        <span style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
-                          #{item.id}
-                        </span>
+                        {item.jira_issue_key && item.jira_url ? (
+                          <a
+                            href={item.jira_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={e => e.stopPropagation()}
+                            style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--brand-600)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                          >
+                            {item.jira_issue_key}
+                            <svg width="10" height="10" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                              <path d="M6 3H3v10h10v-3M9 3h4v4M13 3L7.5 8.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </a>
+                        ) : <span />}
                         <span className={`status ${status.cls}`} style={{ fontSize: 11 }}>
                           <span className="dot" />
                           {status.label}
@@ -366,13 +397,12 @@ export default function VocMyPage() {
                           {VOC_TYPE_LABEL[item.voc_type] ?? item.voc_type}
                         </span>
                         <span>{item.product}</span>
-                        {item.jira_issue_key && (
-                          <span style={{ color: 'var(--brand-600)', fontFamily: 'var(--font-mono)' }}>· {item.jira_issue_key}</span>
-                        )}
                         {item.comments_count > 0 && (
                           <span>· 💬 {item.comments_count}</span>
                         )}
-                        <span style={{ marginLeft: 'auto', fontSize: 11 }}>{fmtDate(item.created_at)}</span>
+                        <span style={{ marginLeft: 'auto', fontSize: 11 }} title={fmtDate(item.created_at)}>
+                          {fmtDate(item.created_at)}
+                        </span>
                       </div>
                     </div>
                   )

@@ -69,7 +69,8 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  /* 4) 응답 변환 — comments 본문은 제외하고 개수만 노출 */
+  /* 4) 응답 변환 — comments 본문은 제외하고 개수만 노출 + JIRA URL 조립 */
+  const jiraHost = (process.env.JIRA_HOST ?? '').replace(/\/$/, '')
   const items = (data ?? []).map(row => ({
     id:               row.id,
     view_token:       row.view_token,
@@ -78,6 +79,7 @@ export async function GET(req: NextRequest) {
     summary:          row.summary,
     current_status:   row.current_status,
     jira_issue_key:   row.jira_issue_key,
+    jira_url:         row.jira_issue_key && jiraHost ? `${jiraHost}/browse/${row.jira_issue_key}` : null,
     comments_count:   Array.isArray(row.comments) ? row.comments.length : 0,
     created_at:       row.created_at,
   }))
