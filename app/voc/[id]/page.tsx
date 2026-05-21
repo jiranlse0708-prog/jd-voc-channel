@@ -163,7 +163,9 @@ export default async function VocViewPage({ params, searchParams }: Props) {
   )
 
   const status   = STATUS[row.current_status] ?? { cls: 'status-received', label: row.current_status }
-  const comments = row.comments ?? []
+  const comments = [...(row.comments ?? [])].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  )
   const jiraHost = process.env.JIRA_HOST?.replace(/\/$/, '')
 
   return (
@@ -264,7 +266,7 @@ export default async function VocViewPage({ params, searchParams }: Props) {
                         <path d="M5 5h6M5 8h6M5 11h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
                       </svg>
                       <span style={{ fontSize: 13, color: 'var(--text-strong)' }}>{a.name}</span>
-                      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{fmtSize(a.size)}</span>
+                      <span style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap', flexShrink: 0 }}>{fmtSize(a.size)}</span>
                     </div>
                     {a.signedUrl && (
                       <a href={a.signedUrl} download={a.name} className="btn btn-sm btn-secondary" style={{ flexShrink: 0 }}>
