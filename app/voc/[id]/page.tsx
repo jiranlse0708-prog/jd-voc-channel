@@ -99,17 +99,23 @@ function WorkflowStepper({ status }: { status: string }) {
 
 /* ─── JIRA 위키 마크업 렌더러 ─── */
 
-/** 인라인: *볼드*, _이탤릭_, [^파일명] */
+/* accountId → 표시 이름 (알려진 담당자만) */
+const KNOWN_ACCOUNTS: Record<string, string> = {
+  '5a2e4b4df34f35510563ac4c':                    '정석범',
+  '712020:eab47ad1-5185-4f87-ad6e-cf1d7744d516': '김정태',
+}
+
+/** 인라인: *볼드*, _이탤릭_, [^파일명], [~accountid:...] 멘션 */
 function jiraInline(text: string, attachments?: CommentAttachment[]) {
-  const re = /(\[\^([^\]]+)\]|\*([^*\n]+)\*|_([^_\n]+)_)/g
+  const re = /(\[\^([^\]]+)\]|\[~accountid:([^\]]+)\]|\[~([^\]]+)\]|\*([^*\n]+)\*|_([^_\n]+)_)/g
   const parts: React.ReactNode[] = []
   let last = 0, m: RegExpExecArray | null
   while ((m = re.exec(text)) !== null) {
     if (m.index > last) parts.push(text.slice(last, m.index))
     if (m[0].startsWith('[^')) {
-      const filename  = m[2]
-      const attached  = attachments?.find(a => a.name === filename)
-      const proxyUrl  = attached ? `/api/jira/attachment?url=${encodeURIComponent(attached.url)}` : null
+      const filename = m[2]
+      const attached = attachments?.find(a => a.name === filename)
+      const proxyUrl = attached ? `/api/jira/attachment?url=${encodeURIComponent(attached.url)}` : null
       parts.push(
         proxyUrl ? (
           <a key={m.index} href={proxyUrl} download={filename} style={{
@@ -126,10 +132,28 @@ function jiraInline(text: string, attachments?: CommentAttachment[]) {
           }}>📎 {filename}</span>
         )
       )
+    } else if (m[0].startsWith('[~accountid:')) {
+      const accountId  = m[3]
+      const displayName = KNOWN_ACCOUNTS[accountId] ?? '담당자'
+      parts.push(
+        <span key={m.index} style={{
+          display: 'inline-flex', alignItems: 'center',
+          fontSize: 11, fontWeight: 600, color: 'var(--info-700)',
+          background: 'var(--info-50)', borderRadius: 4, padding: '1px 6px',
+        }}>@{displayName}</span>
+      )
+    } else if (m[0].startsWith('[~')) {
+      /* 구형 JIRA username 멘션 */
+      parts.push(
+        <span key={m.index} style={{
+          fontSize: 11, fontWeight: 600, color: 'var(--info-700)',
+          background: 'var(--info-50)', borderRadius: 4, padding: '1px 6px',
+        }}>@{m[4]}</span>
+      )
     } else if (m[0].startsWith('*')) {
-      parts.push(<strong key={m.index}>{m[3]}</strong>)
+      parts.push(<strong key={m.index}>{m[5]}</strong>)
     } else {
-      parts.push(<em key={m.index}>{m[4]}</em>)
+      parts.push(<em key={m.index}>{m[6]}</em>)
     }
     last = m.index + m[0].length
   }
