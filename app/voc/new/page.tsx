@@ -726,6 +726,25 @@ export default function VocNewPage() {
             {/* 참고 화면 */}
             <div>
               <label className="field-label">참고 화면</label>
+
+              {/* 파일 목록 — 미리보기 카드 그리드 (드롭존 위) */}
+              {files.length > 0 && (
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, 140px)', gap: 10, marginBottom: 10 }}>
+                    {files.map((file, idx) => (
+                      <FilePreview
+                        key={`${file.name}-${file.size}-${idx}`}
+                        file={file}
+                        onRemove={() => removeFile(idx)}
+                      />
+                    ))}
+                  </div>
+                  <p style={{ fontSize: 11, color: 'var(--text-subtle)', margin: '0 0 10px' }}>
+                    총 {files.length}개 · {fmtSize(files.reduce((s, f) => s + f.size, 0))} / 200MB
+                  </p>
+                </>
+              )}
+
               <div
                 className={`dropzone${isDragging ? ' active' : ''}`}
                 onDragOver={onDragOver}
@@ -737,7 +756,10 @@ export default function VocNewPage() {
                   <path d="M12 16V4M12 4l-4 4M12 4l4 4M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-strong)' }}>
-                  파일 끌어놓기 또는 <span style={{ color: 'var(--brand-600)', fontWeight: 600 }}>클릭하여 선택</span>
+                  {files.length > 0
+                    ? <>파일 더 추가하기 또는 <span style={{ color: 'var(--brand-600)', fontWeight: 600 }}>클릭하여 선택</span></>
+                    : <>파일 끌어놓기 또는 <span style={{ color: 'var(--brand-600)', fontWeight: 600 }}>클릭하여 선택</span></>
+                  }
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
                   이미지 · PDF · 문서 — 파일당 최대 50MB
@@ -764,24 +786,6 @@ export default function VocNewPage() {
 
               {/* 파일 에러 */}
               <FieldError msg={errors.files} />
-
-              {/* 파일 목록 — 미리보기 카드 그리드 */}
-              {files.length > 0 && (
-                <>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, 140px)', gap: 10, marginTop: 10 }}>
-                    {files.map((file, idx) => (
-                      <FilePreview
-                        key={`${file.name}-${file.size}-${idx}`}
-                        file={file}
-                        onRemove={() => removeFile(idx)}
-                      />
-                    ))}
-                  </div>
-                  <p style={{ fontSize: 11, color: 'var(--text-subtle)', margin: '8px 0 0' }}>
-                    총 {files.length}개 · {fmtSize(files.reduce((s, f) => s + f.size, 0))} / 200MB
-                  </p>
-                </>
-              )}
             </div>
           </div>
 
