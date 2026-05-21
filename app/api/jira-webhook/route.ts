@@ -82,6 +82,7 @@ export async function POST(req: NextRequest) {
   /* ── 댓글 이벤트 ── */
   if (event === 'comment_created' || event === 'comment_updated') {
     const comment    = payload.comment as Record<string, unknown> | undefined
+    const commentId  = (comment?.id as string) ?? null
     const author     = ((comment?.author as Record<string, unknown>)?.displayName as string) ?? '담당자'
     const bodyRaw    = comment?.body
     const bodyText   = typeof bodyRaw === 'string' ? bodyRaw : adfToText(bodyRaw)
@@ -119,10 +120,25 @@ export async function POST(req: NextRequest) {
       .select('comments')
       .eq('id', row.id)
       .single()
-    const existing = (cur?.comments as unknown[]) ?? []
+    const existing = (cur?.comments as Record<string, unknown>[]) ?? []
+    const newComment = { jira_comment_id: commentId, author, body: bodyText, created_at: createdAt, attachments }
+
+    let updatedComments
+    if (event === 'comment_updated' && commentId) {
+      /* 기존 댓글 찾아서 교체, 없으면 추가 */
+      const idx = existing.findIndex(c => c.jira_comment_id === commentId)
+      if (idx >= 0) {
+        updatedComments = existing.map((c, i) => i === idx ? newComment : c)
+      } else {
+        updatedComments = [...existing, newComment]
+      }
+    } else {
+      updatedComments = [...existing, newComment]
+    }
+
     await supabase
       .from('voc_submission')
-      .update({ comments: [...existing, { author, body: bodyText, created_at: createdAt, attachments }] })
+      .update({ comments: updatedComments })
       .eq('id', row.id)
 
     /* 이메일 발송 */

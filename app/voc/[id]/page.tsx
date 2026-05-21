@@ -11,7 +11,7 @@ const BUCKET = 'voc-attachments'
 /* ─── 타입 ─── */
 interface Attachment { name: string; size: number; type: string; path: string }
 interface CommentAttachment { name: string; url: string }
-interface Comment    { author: string; body: string; created_at: string; attachments?: CommentAttachment[] }
+interface Comment    { jira_comment_id?: string; author: string; body: string; created_at: string; attachments?: CommentAttachment[] }
 interface VocRow {
   id:              number
   view_token:      string
