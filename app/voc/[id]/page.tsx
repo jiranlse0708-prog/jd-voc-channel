@@ -77,7 +77,7 @@ function WorkflowStepper({ status }: { status: string }) {
             if (idx < stageIdx) { dotCls = 'done'; labelCls = 'done' }
             else if (idx === stageIdx) { dotCls = 'active'; labelCls = 'active' }
           }
-          const dotContent = (dotCls === 'done' || (dotCls === 'active' && stage === '완료')) ? '✓' : String(idx + 1)
+          const dotContent = dotCls === 'done' ? '✓' : String(idx + 1)
           return (
             <span key={stage} style={{ display: 'flex', alignItems: 'center', flex: idx === WORKFLOW_STAGES.length - 1 ? '0 0 auto' : '1 1 0', minWidth: 0 }}>
               <span className="stepper-step">
