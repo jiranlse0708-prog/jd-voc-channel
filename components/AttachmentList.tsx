@@ -89,12 +89,12 @@ export default function AttachmentList({ items }: { items: SignedAttachment[] })
                   />
                 )}
               </button>
-              <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 13, color: 'var(--text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
+              <div style={{ padding: '8px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <span style={{ fontSize: 12, color: 'var(--text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {a.name}
                   </span>
-                  <span style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                     {fmtSize(a.size)}
                   </span>
                 </div>
@@ -102,10 +102,14 @@ export default function AttachmentList({ items }: { items: SignedAttachment[] })
                   <a
                     href={a.signedUrl}
                     download={a.name}
-                    className="btn btn-sm btn-secondary"
-                    style={{ alignSelf: 'flex-start' }}
+                    className="icon-btn"
+                    aria-label={`${a.name} 다운로드`}
+                    onClick={e => e.stopPropagation()}
+                    style={{ flexShrink: 0, width: 30, height: 30 }}
                   >
-                    다운로드
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                      <path d="M8 2v9m0 0L4 7m4 4l4-4M3 14h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
                   </a>
                 )}
               </div>
