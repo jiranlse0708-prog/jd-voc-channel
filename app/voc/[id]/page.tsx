@@ -1,3 +1,4 @@
+import React from 'react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase-server'
@@ -93,6 +94,88 @@ function WorkflowStepper({ status }: { status: string }) {
       </div>
     </div>
   )
+}
+
+/* ─── JIRA 위키 마크업 렌더러 ─── */
+
+/** 인라인: *볼드*, _이탤릭_, [^파일명] */
+function jiraInline(text: string) {
+  const re = /(\[\^([^\]]+)\]|\*([^*\n]+)\*|_([^_\n]+)_)/g
+  const parts: React.ReactNode[] = []
+  let last = 0, m: RegExpExecArray | null
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) parts.push(text.slice(last, m.index))
+    if (m[0].startsWith('[^')) {
+      parts.push(
+        <span key={m.index} style={{
+          display: 'inline-flex', alignItems: 'center', gap: 3,
+          fontSize: 11, color: 'var(--text-muted)',
+          background: 'var(--gray-100)', borderRadius: 4, padding: '1px 6px',
+        }}>📎 {m[2]}</span>
+      )
+    } else if (m[0].startsWith('*')) {
+      parts.push(<strong key={m.index}>{m[3]}</strong>)
+    } else {
+      parts.push(<em key={m.index}>{m[4]}</em>)
+    }
+    last = m.index + m[0].length
+  }
+  if (last < text.length) parts.push(text.slice(last))
+  return <>{parts}</>
+}
+
+/** 블록: 테이블(||헤더||, |데이터|) + 인라인 마크업 */
+function renderJira(text: string) {
+  const lines = text.split('\n')
+  const out: React.ReactNode[] = []
+  let tableRows: { header: boolean; cells: string[] }[] = []
+
+  const flushTable = (key: number) => {
+    if (!tableRows.length) return
+    const rows = tableRows; tableRows = []
+    out.push(
+      <div key={`tbl-${key}`} style={{ overflowX: 'auto', margin: '6px 0' }}>
+        <table style={{ borderCollapse: 'collapse', fontSize: 12, width: 'max-content', maxWidth: '100%' }}>
+          <tbody>
+            {rows.map((r, ri) => (
+              <tr key={ri}>
+                {r.cells.map((cell, ci) => {
+                  const Tag = r.header ? 'th' : 'td'
+                  return (
+                    <Tag key={ci} style={{
+                      border: '1px solid var(--surface-border)',
+                      padding: '5px 10px', textAlign: 'left',
+                      fontWeight: r.header ? 700 : 400,
+                      background: r.header ? 'var(--gray-50)' : 'transparent',
+                    }}>
+                      {jiraInline(cell.trim())}
+                    </Tag>
+                  )
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+
+  lines.forEach((line, li) => {
+    if (line.startsWith('||')) {
+      tableRows.push({ header: true, cells: line.replace(/^\|\|/, '').replace(/\|\|$/, '').split('||') })
+    } else if (/^\|[^|]/.test(line) || line === '|') {
+      tableRows.push({ header: false, cells: line.replace(/^\|/, '').replace(/\|$/, '').split('|') })
+    } else {
+      flushTable(li)
+      if (line.trim() === '') {
+        out.push(<br key={`br-${li}`} />)
+      } else {
+        out.push(<div key={`l-${li}`} style={{ lineHeight: 1.65 }}>{jiraInline(line)}</div>)
+      }
+    }
+  })
+  flushTable(lines.length)
+  return <>{out}</>
 }
 
 /* ─── 유틸 ─── */
@@ -257,30 +340,50 @@ export default async function VocViewPage({ params, searchParams }: Props) {
             </div>
           )}
 
-          {/* ─── 처리 이력 / 댓글 ─── */}
+          {/* ─── 담당자 코멘트 ─── */}
           {comments.length > 0 && (
-            <div className="card">
-              <SectionLabel>담당자 코멘트</SectionLabel>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            <div style={{
+              background: 'var(--surface-canvas)',
+              border: '1px solid var(--surface-border)',
+              borderRadius: 'var(--r-lg)',
+              padding: '20px 24px',
+            }}>
+              {/* 헤더 */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+                  <path d="M14 10a2 2 0 01-2 2H5l-3 3V4a2 2 0 012-2h8a2 2 0 012 2v6z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
+                </svg>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)' }}>
+                  담당자 코멘트 {comments.length}개
+                </span>
+              </div>
+
+              {/* 댓글 목록 */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {comments.map((c, i) => (
-                  <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                  <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                     {/* 아바타 */}
                     <div style={{
-                      width: 36, height: 36, borderRadius: '50%',
+                      width: 32, height: 32, borderRadius: '50%',
                       background: 'var(--brand-500)', color: '#fff',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 13, fontWeight: 700,
-                      flexShrink: 0,
+                      fontSize: 12, fontWeight: 700, flexShrink: 0,
                     }}>
                       {(c.author ?? '?').slice(0, 1)}
                     </div>
-                    {/* 컨텐츠 */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-strong)' }}>{c.author}</span>
+                    {/* 말풍선 */}
+                    <div style={{
+                      flex: 1, minWidth: 0,
+                      background: 'var(--surface-card)',
+                      border: '1px solid var(--surface-border)',
+                      borderRadius: 'var(--r-md)',
+                      padding: '10px 14px',
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-strong)' }}>{c.author}</span>
                         <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{fmtDate(c.created_at)}</span>
                       </div>
-                      <p style={{ margin: 0, fontSize: 13, color: 'var(--text-default)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{c.body}</p>
+                      <div style={{ fontSize: 13, color: 'var(--text-default)' }}>{renderJira(c.body)}</div>
                     </div>
                   </div>
                 ))}
