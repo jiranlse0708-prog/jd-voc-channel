@@ -344,6 +344,18 @@ body {
 }
 .topbar-brand { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--text-strong); font-size: 14px; }
 .topbar-brand .logo { width: 22px; height: 22px; border-radius: 6px; background: var(--brand-500); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 800; font-family: var(--font-mono); }
+.topbar-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--text-default); text-decoration: none;
+  font-size: 13px; font-weight: 500;
+  padding: 6px 10px; border-radius: var(--r-sm);
+  transition: background 0.12s, color 0.12s;
+}
+.topbar-link:hover { background: var(--surface-hover); color: var(--text-strong); }
+@media (max-width: 640px) {
+  .topbar { padding: 0 14px; }
+  .topbar-link { padding: 6px 8px; font-size: 12px; }
+}
 
 .tbl { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--surface-card); border: 1px solid var(--surface-border); border-radius: var(--r-lg); overflow: hidden; font-size: 13px; }
 .tbl th { text-align: left; font-weight: 600; color: var(--text-muted); font-size: 12px; padding: 10px 14px; background: var(--gray-25); border-bottom: 1px solid var(--surface-border); white-space: nowrap; }
@@ -351,6 +363,49 @@ body {
 .tbl tr:last-child td { border-bottom: none; }
 .tbl tr:hover td { background: var(--gray-25); }
 .tbl .cell-id { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
+
+/* ── 워크플로우 Stepper (/voc/[id] 상세 페이지) ── */
+.workflow-card { padding: 18px 20px; }
+.stepper { display: flex; align-items: center; gap: 0; flex-wrap: nowrap; }
+.stepper-step { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.stepper-dot {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; flex-shrink: 0;
+}
+.stepper-dot.done     { background: var(--brand-500); color: #fff; }
+.stepper-dot.active   { background: var(--brand-500); color: #fff; box-shadow: 0 0 0 4px var(--brand-50); }
+.stepper-dot.inactive { background: var(--surface-card); border: 2px solid var(--surface-border); color: var(--text-muted); }
+.stepper-label { font-size: 13px; font-weight: 600; white-space: nowrap; }
+.stepper-label.done     { color: var(--brand-700); }
+.stepper-label.active   { color: var(--brand-700); }
+.stepper-label.inactive { color: var(--text-muted); }
+.stepper-line { flex: 1; height: 2px; background: var(--surface-border); margin: 0 12px; min-width: 20px; }
+.stepper-line.done { background: var(--brand-500); }
+
+.workflow-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: var(--r-pill);
+  font-size: 13px; font-weight: 600;
+}
+.workflow-badge.hold    { background: var(--gray-100);   color: var(--gray-700); }
+.workflow-badge.deleted { background: var(--danger-50);  color: var(--danger-700); }
+
+@media (max-width: 640px) {
+  .workflow-card { padding: 14px 14px; }
+  .stepper-dot { width: 22px; height: 22px; font-size: 11px; }
+  .stepper-label { font-size: 11.5px; }
+  .stepper-line { margin: 0 6px; min-width: 12px; }
+}
+
+/* ── /voc/my 목록 페이지 전용 ── */
+.voc-title-cell  { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.voc-desktop-only { display: block; }
+.voc-mobile-list  { display: none; flex-direction: column; gap: 10px; }
+@media (max-width: 640px) {
+  .voc-desktop-only { display: none; }
+  .voc-mobile-list  { display: flex; }
+}
 
 /* ================================================================
    Utility
