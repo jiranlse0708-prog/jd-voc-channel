@@ -53,7 +53,7 @@ export default function AttachmentList({ items }: { items: SignedAttachment[] })
       {images.length > 0 && (
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fill, 140px)',
           gap: 12,
           marginBottom: nonImages.length > 0 ? 12 : 0,
         }}>
