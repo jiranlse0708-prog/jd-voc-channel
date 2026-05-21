@@ -197,20 +197,28 @@ export default function VocNewPage() {
   }, [])
 
   /* ── 로컬스토리지 저장 (remember ON일 때만) ── */
-  useEffect(() => { if (lsLoaded.current && remember) localStorage.setItem(LS.dept,  dept)  }, [dept,  remember])
-  useEffect(() => { if (lsLoaded.current && remember) localStorage.setItem(LS.name,  name)  }, [name,  remember])
-  useEffect(() => { if (lsLoaded.current && remember) localStorage.setItem(LS.email, email) }, [email, remember])
+  /* 값이 있을 때만 저장. 빈 값일 땐 아무 동작 안 함 (마운트 시 빈 state로 LS를 지우지 않도록).
+   * 명시적 비우기는 "초기화" 버튼 또는 "기억하기" 토글 OFF에서 처리. */
+  useEffect(() => {
+    if (!lsLoaded.current || !remember || !dept) return
+    localStorage.setItem(LS.dept, dept)
+  }, [dept, remember])
+  useEffect(() => {
+    if (!lsLoaded.current || !remember || !name) return
+    localStorage.setItem(LS.name, name)
+  }, [name, remember])
+  useEffect(() => {
+    if (!lsLoaded.current || !remember || !email) return
+    localStorage.setItem(LS.email, email)
+  }, [email, remember])
 
-  /* ── 드래프트 자동 저장 (500ms 디바운스) ── */
+  /* ── 드래프트 자동 저장 (즉시 — 입력 후 즉시 다른 페이지로 이동해도 보존되도록) ── */
   useEffect(() => {
     if (!lsLoaded.current) return
-    const handle = setTimeout(() => {
-      localStorage.setItem(LS.draft, JSON.stringify({
-        product, vocType, summary, customer, priority,
-        purpose, screenPaths, detail, dueDate,
-      }))
-    }, 500)
-    return () => clearTimeout(handle)
+    localStorage.setItem(LS.draft, JSON.stringify({
+      product, vocType, summary, customer, priority,
+      purpose, screenPaths, detail, dueDate,
+    }))
   }, [product, vocType, summary, customer, priority, purpose, screenPaths, detail, dueDate])
 
   /* ── remember 토글 시: OFF로 바뀌면 즉시 저장값 삭제, ON으로 바뀌면 현재 값 기록 ── */
@@ -218,9 +226,10 @@ export default function VocNewPage() {
     if (!lsLoaded.current) return
     if (remember) {
       localStorage.setItem(LS.remember, '1')
-      localStorage.setItem(LS.dept,  dept)
-      localStorage.setItem(LS.name,  name)
-      localStorage.setItem(LS.email, email)
+      // 값이 있을 때만 저장 (마운트 시 빈 state로 LS를 지우지 않도록)
+      if (dept)  localStorage.setItem(LS.dept,  dept)
+      if (name)  localStorage.setItem(LS.name,  name)
+      if (email) localStorage.setItem(LS.email, email)
     } else {
       localStorage.setItem(LS.remember, '0')
       localStorage.removeItem(LS.dept)
@@ -470,10 +479,7 @@ export default function VocNewPage() {
                 onChange={e => { setEmail(e.target.value); setErrors(p => { const { email: _, ...r } = p; return r }) }}
                 placeholder="예: hong@jiran.com"
               />
-              {errors.email
-                ? <FieldError msg={errors.email} />
-                : <p className="field-help">접수 내역 조회·향후 알림에 사용됩니다.</p>
-              }
+              <FieldError msg={errors.email} />
             </div>
 
             {/* 자동 저장 동의 */}
@@ -862,6 +868,9 @@ export default function VocNewPage() {
                 setErrors({})
                 setSubmitError(null)
                 localStorage.removeItem(LS.draft)
+                localStorage.removeItem(LS.dept)
+                localStorage.removeItem(LS.name)
+                localStorage.removeItem(LS.email)
                 if (fileInputRef.current) fileInputRef.current.value = ''
                 window.scrollTo({ top: 0, behavior: 'smooth' })
               }}
