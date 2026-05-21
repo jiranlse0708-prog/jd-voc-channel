@@ -258,23 +258,48 @@ export default async function VocViewPage({ params, searchParams }: Props) {
             <div className="card" style={{ marginBottom: 16 }}>
               <SectionLabel>참고 화면</SectionLabel>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {signedAttachments.map((a, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '10px 12px', background: 'var(--surface-canvas)', border: '1px solid var(--surface-border)', borderRadius: 'var(--r-md)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
-                        <rect x="2" y="1" width="12" height="14" rx="2" stroke="currentColor" strokeWidth="1.4" />
-                        <path d="M5 5h6M5 8h6M5 11h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-                      </svg>
-                      <span style={{ fontSize: 13, color: 'var(--text-strong)' }}>{a.name}</span>
-                      <span style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap', flexShrink: 0 }}>{fmtSize(a.size)}</span>
+                {signedAttachments.map((a, i) => {
+                  const isImage = a.type.startsWith('image/')
+                  return (
+                    <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '10px 12px', background: 'var(--surface-canvas)', border: '1px solid var(--surface-border)', borderRadius: 'var(--r-md)' }}>
+                      {/* 이미지 미리보기 — 자연 크기 유지 + 최대 240px 제한, 클릭 시 새 탭 */}
+                      {isImage && a.signedUrl && (
+                        <a href={a.signedUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', alignSelf: 'flex-start' }}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={a.signedUrl}
+                            alt={a.name}
+                            style={{
+                              display: 'block',
+                              width: 'auto',
+                              height: 'auto',
+                              maxWidth: '100%',
+                              maxHeight: 240,
+                              borderRadius: 'var(--r-sm)',
+                              cursor: 'zoom-in',
+                            }}
+                          />
+                        </a>
+                      )}
+                      {/* 파일 메타 행 */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
+                          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+                            <rect x="2" y="1" width="12" height="14" rx="2" stroke="currentColor" strokeWidth="1.4" />
+                            <path d="M5 5h6M5 8h6M5 11h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                          </svg>
+                          <span style={{ fontSize: 13, color: 'var(--text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.name}</span>
+                          <span style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap', flexShrink: 0 }}>{fmtSize(a.size)}</span>
+                        </div>
+                        {a.signedUrl && (
+                          <a href={a.signedUrl} download={a.name} className="btn btn-sm btn-secondary" style={{ flexShrink: 0 }}>
+                            다운로드
+                          </a>
+                        )}
+                      </div>
                     </div>
-                    {a.signedUrl && (
-                      <a href={a.signedUrl} download={a.name} className="btn btn-sm btn-secondary" style={{ flexShrink: 0 }}>
-                        다운로드
-                      </a>
-                    )}
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           )}
