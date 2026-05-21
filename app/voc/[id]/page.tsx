@@ -239,11 +239,7 @@ export default async function VocViewPage({ params, searchParams }: Props) {
             <SectionLabel>요청 정보</SectionLabel>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(160px,1fr))', gap: 16, marginBottom: 16 }}>
               <Field label="제품">{row.product}</Field>
-              <Field label="VOC 유형">
-                <span className={`cat cat-${row.voc_type}`}>
-                  {VOC_TYPE_LABEL[row.voc_type] ?? row.voc_type}
-                </span>
-              </Field>
+              <Field label="VOC 유형">{VOC_TYPE_LABEL[row.voc_type] ?? row.voc_type}</Field>
               {row.customer && <Field label="요청 고객사">{row.customer}</Field>}
               <Field label="우선순위">{PRIORITY_LABEL[row.priority] ?? row.priority}</Field>
               {row.due_date && <Field label="요청 기한">{row.due_date}</Field>}
