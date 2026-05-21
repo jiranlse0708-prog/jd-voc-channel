@@ -330,7 +330,7 @@ export default function VocMyPage() {
                             fontWeight: item.comments_count > 0 ? 600 : 400,
                             fontSize: 13,
                           }}>
-                            {item.comments_count > 0 ? `${item.comments_count}개` : '–'}
+                            {`${item.comments_count}개`}
                           </td>
                           <td onClick={e => e.stopPropagation()} style={{ textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: 12 }}>
                             {item.jira_issue_key && item.jira_url ? (
