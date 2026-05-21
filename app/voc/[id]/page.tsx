@@ -344,7 +344,7 @@ export default async function VocViewPage({ params, searchParams }: Props) {
           {comments.length > 0 && (
             <div className="card">
               {/* 헤더 */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16, paddingBottom: 14, borderBottom: '1px solid var(--surface-border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
                   <path d="M14 10a2 2 0 01-2 2H5l-3 3V4a2 2 0 012-2h8a2 2 0 012 2v6z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
                 </svg>
