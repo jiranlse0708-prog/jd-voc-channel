@@ -72,7 +72,7 @@ export default function AttachmentList({ items }: { items: SignedAttachment[] })
                 aria-label={`${a.name} 크게 보기`}
                 style={{
                   width: '100%',
-                  height: 140,
+                  height: 100,
                   background: 'var(--gray-100)',
                   border: 0,
                   padding: 0,
