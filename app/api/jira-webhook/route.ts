@@ -133,25 +133,17 @@ export async function POST(req: NextRequest) {
       created_at: c.created_at,
     }))))
 
-    let updatedComments
-    if (event === 'comment_updated') {
-      /* 1순위: jira_comment_id 문자열 매칭 */
-      let idx = commentId
-        ? existing.findIndex(c => String(c.jira_comment_id ?? '') === commentId)
-        : -1
-      /* 2순위: author + created_at 조합 매칭 */
-      if (idx < 0) {
-        idx = existing.findIndex(c => c.author === author && c.created_at === createdAt)
-      }
-      console.log('[webhook] matched idx:', idx)
-      if (idx >= 0) {
-        updatedComments = existing.map((c, i) => i === idx ? newComment : c)
-      } else {
-        updatedComments = [...existing, newComment]
-      }
-    } else {
-      updatedComments = [...existing, newComment]
+    /* created/updated 모두 기존 댓글 먼저 찾고, 없을 때만 append */
+    let idx = commentId
+      ? existing.findIndex(c => String(c.jira_comment_id ?? '') === commentId)
+      : -1
+    if (idx < 0) {
+      idx = existing.findIndex(c => c.author === author && c.created_at === createdAt)
     }
+    console.log('[webhook] matched idx:', idx, 'event:', event, 'commentId:', commentId)
+    const updatedComments = idx >= 0
+      ? existing.map((c, i) => i === idx ? newComment : c)
+      : [...existing, newComment]
 
     await supabase
       .from('voc_submission')
