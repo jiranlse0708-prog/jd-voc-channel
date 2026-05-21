@@ -10,7 +10,8 @@ const BUCKET = 'voc-attachments'
 
 /* ─── 타입 ─── */
 interface Attachment { name: string; size: number; type: string; path: string }
-interface Comment    { author: string; body: string; created_at: string }
+interface CommentAttachment { name: string; url: string }
+interface Comment    { author: string; body: string; created_at: string; attachments?: CommentAttachment[] }
 interface VocRow {
   id:              number
   view_token:      string
@@ -99,19 +100,31 @@ function WorkflowStepper({ status }: { status: string }) {
 /* ─── JIRA 위키 마크업 렌더러 ─── */
 
 /** 인라인: *볼드*, _이탤릭_, [^파일명] */
-function jiraInline(text: string) {
+function jiraInline(text: string, attachments?: CommentAttachment[]) {
   const re = /(\[\^([^\]]+)\]|\*([^*\n]+)\*|_([^_\n]+)_)/g
   const parts: React.ReactNode[] = []
   let last = 0, m: RegExpExecArray | null
   while ((m = re.exec(text)) !== null) {
     if (m.index > last) parts.push(text.slice(last, m.index))
     if (m[0].startsWith('[^')) {
+      const filename  = m[2]
+      const attached  = attachments?.find(a => a.name === filename)
+      const proxyUrl  = attached ? `/api/jira/attachment?url=${encodeURIComponent(attached.url)}` : null
       parts.push(
-        <span key={m.index} style={{
-          display: 'inline-flex', alignItems: 'center', gap: 3,
-          fontSize: 11, color: 'var(--text-muted)',
-          background: 'var(--gray-100)', borderRadius: 4, padding: '1px 6px',
-        }}>📎 {m[2]}</span>
+        proxyUrl ? (
+          <a key={m.index} href={proxyUrl} download={filename} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 3,
+            fontSize: 11, color: 'var(--brand-700)',
+            background: 'var(--brand-50)', borderRadius: 4, padding: '1px 6px',
+            textDecoration: 'none',
+          }}>📎 {filename}</a>
+        ) : (
+          <span key={m.index} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 3,
+            fontSize: 11, color: 'var(--text-muted)',
+            background: 'var(--gray-100)', borderRadius: 4, padding: '1px 6px',
+          }}>📎 {filename}</span>
+        )
       )
     } else if (m[0].startsWith('*')) {
       parts.push(<strong key={m.index}>{m[3]}</strong>)
@@ -125,7 +138,7 @@ function jiraInline(text: string) {
 }
 
 /** 블록: 테이블(||헤더||, |데이터|) + 인라인 마크업 */
-function renderJira(text: string) {
+function renderJira(text: string, attachments?: CommentAttachment[]) {
   const lines = text.split('\n')
   const out: React.ReactNode[] = []
   let tableRows: { header: boolean; cells: string[] }[] = []
@@ -148,7 +161,7 @@ function renderJira(text: string) {
                       fontWeight: r.header ? 700 : 400,
                       background: r.header ? 'var(--gray-50)' : 'transparent',
                     }}>
-                      {jiraInline(cell.trim())}
+                      {jiraInline(cell.trim(), attachments)}
                     </Tag>
                   )
                 })}
@@ -170,7 +183,7 @@ function renderJira(text: string) {
       if (line.trim() === '') {
         out.push(<br key={`br-${li}`} />)
       } else {
-        out.push(<div key={`l-${li}`} style={{ lineHeight: 1.65 }}>{jiraInline(line)}</div>)
+        out.push(<div key={`l-${li}`} style={{ lineHeight: 1.65 }}>{jiraInline(line, attachments)}</div>)
       }
     }
   })
@@ -377,7 +390,7 @@ export default async function VocViewPage({ params, searchParams }: Props) {
                         <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-strong)' }}>{c.author}</span>
                         <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{fmtDate(c.created_at)}</span>
                       </div>
-                      <div style={{ fontSize: 13, color: 'var(--text-default)' }}>{renderJira(c.body)}</div>
+                      <div style={{ fontSize: 13, color: 'var(--text-default)' }}>{renderJira(c.body, c.attachments)}</div>
                     </div>
                   </div>
                 ))}

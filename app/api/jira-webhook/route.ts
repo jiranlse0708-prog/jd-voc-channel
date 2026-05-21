@@ -87,6 +87,32 @@ export async function POST(req: NextRequest) {
     const bodyText   = typeof bodyRaw === 'string' ? bodyRaw : adfToText(bodyRaw)
     const createdAt  = (comment?.created as string) ?? new Date().toISOString()
 
+    /* [^파일명] 패턴이 있으면 JIRA API로 첨부파일 URL 조회 */
+    let attachments: { name: string; url: string }[] = []
+    const attachRefs = [...bodyText.matchAll(/\[\^([^\]]+)\]/g)].map(m => m[1])
+    if (attachRefs.length > 0) {
+      try {
+        const jiraHost = process.env.JIRA_HOST?.replace(/\/$/, '')
+        const cred     = Buffer.from(`${process.env.JIRA_EMAIL}:${process.env.JIRA_API_TOKEN}`).toString('base64')
+        const res = await fetch(
+          `${jiraHost}/rest/api/3/issue/${issueKey}?fields=attachment`,
+          { headers: { Authorization: `Basic ${cred}`, Accept: 'application/json' } }
+        )
+        if (res.ok) {
+          const data = await res.json() as { fields?: { attachment?: { filename: string; content: string }[] } }
+          const list = data.fields?.attachment ?? []
+          attachments = attachRefs
+            .map(name => {
+              const found = list.find(a => a.filename === name)
+              return found ? { name, url: found.content } : null
+            })
+            .filter(Boolean) as { name: string; url: string }[]
+        }
+      } catch (e) {
+        console.error('[webhook] attachment fetch error', e)
+      }
+    }
+
     /* DB comments 배열에 추가 */
     const { data: cur } = await supabase
       .from('voc_submission')
@@ -96,7 +122,7 @@ export async function POST(req: NextRequest) {
     const existing = (cur?.comments as unknown[]) ?? []
     await supabase
       .from('voc_submission')
-      .update({ comments: [...existing, { author, body: bodyText, created_at: createdAt }] })
+      .update({ comments: [...existing, { author, body: bodyText, created_at: createdAt, attachments }] })
       .eq('id', row.id)
 
     /* 이메일 발송 */
