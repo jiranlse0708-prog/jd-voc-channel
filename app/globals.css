@@ -402,9 +402,14 @@ body {
 .voc-title-cell  { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .voc-desktop-only { display: block; }
 .voc-mobile-list  { display: none; flex-direction: column; gap: 10px; }
+.filter-chips-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+
 @media (max-width: 640px) {
   .voc-desktop-only { display: none; }
   .voc-mobile-list  { display: flex; }
+  /* 모바일에서 필터 칩 5개가 1줄에 들어가도록 좌우 여백 축소 */
+  .filter-chips-row { gap: 4px; }
+  .filter-chips-row .btn-sm { padding-left: 8px; padding-right: 8px; font-size: 12px; }
 }
 
 /* ================================================================
