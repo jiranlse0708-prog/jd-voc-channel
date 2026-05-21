@@ -17,12 +17,26 @@ function fmtSize(b: number) {
 }
 
 export default function AttachmentList({ items }: { items: SignedAttachment[] }) {
-  const [lightbox, setLightbox] = useState<{ url: string; alt: string } | null>(null)
+  const images    = items.filter(a => a.type.startsWith('image/'))
+  const nonImages = items.filter(a => !a.type.startsWith('image/'))
 
-  /* ESC 닫기 + 스크롤 잠금 */
+  const [lightboxIdx, setLightboxIdx] = useState<number | null>(null)
+  const current = lightboxIdx !== null ? images[lightboxIdx] : null
+  const hasMultiple = images.length > 1
+
+  const prevImage = () =>
+    setLightboxIdx(i => (i === null ? null : (i - 1 + images.length) % images.length))
+  const nextImage = () =>
+    setLightboxIdx(i => (i === null ? null : (i + 1) % images.length))
+
+  /* ESC/←/→ 키 + 스크롤 잠금 */
   useEffect(() => {
-    if (!lightbox) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setLightbox(null) }
+    if (lightboxIdx === null) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape')         setLightboxIdx(null)
+      else if (e.key === 'ArrowLeft'  && hasMultiple) prevImage()
+      else if (e.key === 'ArrowRight' && hasMultiple) nextImage()
+    }
     window.addEventListener('keydown', onKey)
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
@@ -30,10 +44,8 @@ export default function AttachmentList({ items }: { items: SignedAttachment[] })
       window.removeEventListener('keydown', onKey)
       document.body.style.overflow = prev
     }
-  }, [lightbox])
-
-  const images    = items.filter(a => a.type.startsWith('image/'))
-  const nonImages = items.filter(a => !a.type.startsWith('image/'))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lightboxIdx, hasMultiple])
 
   return (
     <>
@@ -56,7 +68,7 @@ export default function AttachmentList({ items }: { items: SignedAttachment[] })
             }}>
               <button
                 type="button"
-                onClick={() => a.signedUrl && setLightbox({ url: a.signedUrl, alt: a.name })}
+                onClick={() => a.signedUrl && setLightboxIdx(i)}
                 aria-label={`${a.name} 크게 보기`}
                 style={{
                   width: '100%',
@@ -132,12 +144,12 @@ export default function AttachmentList({ items }: { items: SignedAttachment[] })
       )}
 
       {/* Lightbox 모달 */}
-      {lightbox && (
+      {current && current.signedUrl && (
         <div
           role="dialog"
           aria-modal="true"
-          aria-label={`이미지 크게 보기: ${lightbox.alt}`}
-          onClick={() => setLightbox(null)}
+          aria-label={`이미지 크게 보기: ${current.name}`}
+          onClick={() => setLightboxIdx(null)}
           style={{
             position: 'fixed', inset: 0, zIndex: 100,
             background: 'rgba(0, 0, 0, 0.85)',
@@ -146,10 +158,78 @@ export default function AttachmentList({ items }: { items: SignedAttachment[] })
             cursor: 'zoom-out',
           }}
         >
+          {/* 좌측 이전 버튼 */}
+          {hasMultiple && (
+            <button
+              type="button"
+              onClick={e => { e.stopPropagation(); prevImage() }}
+              aria-label="이전 이미지"
+              style={{
+                position: 'absolute',
+                left: 16, top: '50%', transform: 'translateY(-50%)',
+                width: 44, height: 44,
+                borderRadius: '50%',
+                background: 'rgba(255, 255, 255, 0.15)',
+                border: 0,
+                color: '#fff',
+                cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 24,
+                lineHeight: 1,
+              }}
+            >
+              ‹
+            </button>
+          )}
+
+          {/* 우측 다음 버튼 */}
+          {hasMultiple && (
+            <button
+              type="button"
+              onClick={e => { e.stopPropagation(); nextImage() }}
+              aria-label="다음 이미지"
+              style={{
+                position: 'absolute',
+                right: 16, top: '50%', transform: 'translateY(-50%)',
+                width: 44, height: 44,
+                borderRadius: '50%',
+                background: 'rgba(255, 255, 255, 0.15)',
+                border: 0,
+                color: '#fff',
+                cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 24,
+                lineHeight: 1,
+              }}
+            >
+              ›
+            </button>
+          )}
+
+          {/* 상단 카운터 */}
+          {hasMultiple && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 20, left: '50%', transform: 'translateX(-50%)',
+                padding: '4px 12px',
+                background: 'rgba(255, 255, 255, 0.15)',
+                color: '#fff',
+                borderRadius: 999,
+                fontSize: 13,
+                fontFamily: 'var(--font-mono)',
+                pointerEvents: 'none',
+              }}
+            >
+              {(lightboxIdx ?? 0) + 1} / {images.length}
+            </div>
+          )}
+
+          {/* 이미지 */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={lightbox.url}
-            alt={lightbox.alt}
+            src={current.signedUrl}
+            alt={current.name}
             onClick={e => e.stopPropagation()}
             style={{
               maxWidth: '100%',
@@ -159,9 +239,11 @@ export default function AttachmentList({ items }: { items: SignedAttachment[] })
               boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
             }}
           />
+
+          {/* 닫기 버튼 */}
           <button
             type="button"
-            onClick={() => setLightbox(null)}
+            onClick={e => { e.stopPropagation(); setLightboxIdx(null) }}
             aria-label="닫기"
             style={{
               position: 'absolute',
