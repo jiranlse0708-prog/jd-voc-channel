@@ -244,9 +244,11 @@ export default async function VocViewPage({ params, searchParams }: Props) {
                   const paths = row.screen_path.split('\n').map(p => p.trim()).filter(Boolean)
                   if (paths.length <= 1) return <span>{row.screen_path}</span>
                   return (
-                    <ol style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      {paths.map((path, i) => <li key={i} style={{ lineHeight: 1.5 }}>{path}</li>)}
-                    </ol>
+                    <ul style={{ margin: 0, paddingLeft: 20, listStyle: 'disc' }}>
+                      {paths.map((path, i) => (
+                        <li key={i} style={{ lineHeight: 1.6, marginTop: i === 0 ? 0 : 4 }}>{path}</li>
+                      ))}
+                    </ul>
                   )
                 })()}
               </Field>
