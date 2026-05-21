@@ -56,8 +56,6 @@ export function FileExtBadge({ name, size = 'md' }: Props) {
         stroke="#d1d5db"
         strokeWidth="1.4"
       />
-      {/* 우상단 접힘 삼각형 채움 */}
-      <path d="M30 1l9 9H31a1 1 0 0 1-1-1V1z" fill="#e5e7eb" />
       {/* 우상단 접힘선 */}
       <path
         d="M30 1v8a1 1 0 0 0 1 1h8"
