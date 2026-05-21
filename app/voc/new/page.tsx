@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import type { FormEvent, DragEvent, ChangeEvent, KeyboardEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Topbar from '@/components/Topbar'
+import FilePreview from '@/components/FilePreview'
 
 /* ── 상수 ── */
 const PRODUCTS = [
@@ -52,25 +53,6 @@ function fmtSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`
-}
-
-/* ── 파일 아이콘 ── */
-function FileIcon({ mime }: { mime: string }) {
-  if (mime.startsWith('image/')) {
-    return (
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-        <rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.3"/>
-        <circle cx="5.5" cy="5.5" r="1" fill="currentColor"/>
-        <path d="M2 11l3.5-3.5L8 10l2.5-2L14 12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    )
-  }
-  return (
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-      <path d="M3 2.5A1.5 1.5 0 014.5 1H9l4 4v8.5A1.5 1.5 0 0111.5 15h-7A1.5 1.5 0 013 13.5v-11z" stroke="currentColor" strokeWidth="1.3"/>
-      <path d="M9 1v4h4" stroke="currentColor" strokeWidth="1.3"/>
-    </svg>
-  )
 }
 
 /* ── 에러 메시지 ── */
@@ -783,33 +765,22 @@ export default function VocNewPage() {
               {/* 파일 에러 */}
               <FieldError msg={errors.files} />
 
-              {/* 파일 목록 */}
+              {/* 파일 목록 — 미리보기 카드 그리드 */}
               {files.length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
-                  {files.map((file, idx) => (
-                    <div key={`${file.name}-${file.size}-${idx}`} className="file-item">
-                      <span style={{ color: 'var(--text-muted)', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-                        <FileIcon mime={file.type} />
-                      </span>
-                      <span className="file-name">{file.name}</span>
-                      <span className="file-size">{fmtSize(file.size)}</span>
-                      <button
-                        type="button"
-                        className="icon-btn"
-                        style={{ width: 24, height: 24, flexShrink: 0 }}
-                        onClick={e => { e.stopPropagation(); removeFile(idx) }}
-                        aria-label={`${file.name} 제거`}
-                      >
-                        <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
-                          <path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                        </svg>
-                      </button>
-                    </div>
-                  ))}
-                  <p style={{ fontSize: 11, color: 'var(--text-subtle)', margin: '2px 0 0' }}>
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, 140px)', gap: 10, marginTop: 10 }}>
+                    {files.map((file, idx) => (
+                      <FilePreview
+                        key={`${file.name}-${file.size}-${idx}`}
+                        file={file}
+                        onRemove={() => removeFile(idx)}
+                      />
+                    ))}
+                  </div>
+                  <p style={{ fontSize: 11, color: 'var(--text-subtle)', margin: '8px 0 0' }}>
                     총 {files.length}개 · {fmtSize(files.reduce((s, f) => s + f.size, 0))} / 200MB
                   </p>
-                </div>
+                </>
               )}
             </div>
           </div>
