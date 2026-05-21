@@ -478,7 +478,7 @@ export default function VocNewPage() {
                   tabIndex={0}
                   onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setRemember(v => !v) } }}
                 />
-                부서·이름·이메일 기억하기
+                요청자 정보 기억하기
               </label>
             </div>
           </div>
