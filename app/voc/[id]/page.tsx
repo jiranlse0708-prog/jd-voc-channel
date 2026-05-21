@@ -281,14 +281,27 @@ export default async function VocViewPage({ params, searchParams }: Props) {
           {comments.length > 0 && (
             <div className="card">
               <SectionLabel>담당자 코멘트</SectionLabel>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
                 {comments.map((c, i) => (
-                  <div key={i} style={{ padding: '12px 14px', background: 'var(--surface-canvas)', border: '1px solid var(--surface-border)', borderLeft: '3px solid var(--brand-400)', borderRadius: 'var(--r-md)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--brand-700)' }}>{c.author}</span>
-                      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{fmtDate(c.created_at)}</span>
+                  <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                    {/* 아바타 */}
+                    <div style={{
+                      width: 36, height: 36, borderRadius: '50%',
+                      background: 'var(--brand-500)', color: '#fff',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 13, fontWeight: 700,
+                      flexShrink: 0,
+                    }}>
+                      {(c.author ?? '?').slice(0, 1)}
                     </div>
-                    <p style={{ margin: 0, fontSize: 14, color: 'var(--text-strong)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{c.body}</p>
+                    {/* 컨텐츠 */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-strong)' }}>{c.author}</span>
+                        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{fmtDate(c.created_at)}</span>
+                      </div>
+                      <p style={{ margin: 0, fontSize: 14, color: 'var(--text-default)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{c.body}</p>
+                    </div>
                   </div>
                 ))}
               </div>
