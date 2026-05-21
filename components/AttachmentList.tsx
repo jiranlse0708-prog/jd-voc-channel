@@ -41,7 +41,7 @@ export default function AttachmentList({ items }: { items: SignedAttachment[] })
       {images.length > 0 && (
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
           gap: 12,
           marginBottom: nonImages.length > 0 ? 12 : 0,
         }}>
@@ -60,7 +60,7 @@ export default function AttachmentList({ items }: { items: SignedAttachment[] })
                 aria-label={`${a.name} 크게 보기`}
                 style={{
                   width: '100%',
-                  aspectRatio: '4 / 3',
+                  aspectRatio: '1 / 1',
                   background: 'var(--gray-100)',
                   border: 0,
                   padding: 0,
