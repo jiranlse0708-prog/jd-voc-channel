@@ -213,18 +213,11 @@ export default async function VocViewPage({ params, searchParams }: Props) {
                   <a
                     href={`${jiraHost}/browse/${row.jira_issue_key}`}
                     target="_blank" rel="noopener noreferrer"
-                    style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 6,
-                      fontSize: 13, color: 'var(--brand-600)', fontFamily: 'var(--font-mono)',
-                      textDecoration: 'none',
-                      background: 'var(--brand-50)', border: '1px solid var(--brand-100)',
-                      borderRadius: 6, padding: '4px 10px',
-                      width: 'fit-content',
-                    }}
+                    style={{ color: 'var(--brand-600)', fontFamily: 'var(--font-mono)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}
                   >
                     {row.jira_issue_key}
-                    <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                      <path d="M3.5 8.5L8.5 3.5M8.5 3.5H5M8.5 3.5V7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg width="10" height="10" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                      <path d="M6 3H3v10h10v-3M9 3h4v4M13 3L7.5 8.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </a>
                 ) : (
