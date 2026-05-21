@@ -243,17 +243,7 @@ export default async function VocViewPage({ params, searchParams }: Props) {
                 <span style={{ whiteSpace: 'pre-wrap' }}>{row.purpose}</span>
               </Field>
               <Field label="화면 경로">
-                {(() => {
-                  const paths = row.screen_path.split('\n').map(p => p.trim()).filter(Boolean)
-                  if (paths.length <= 1) return <span>{row.screen_path}</span>
-                  return (
-                    <ul style={{ margin: 0, paddingLeft: 20, listStyle: 'disc' }}>
-                      {paths.map((path, i) => (
-                        <li key={i} style={{ lineHeight: 1.6, marginTop: i === 0 ? 0 : 4 }}>{path}</li>
-                      ))}
-                    </ul>
-                  )
-                })()}
+                <span style={{ whiteSpace: 'pre-wrap' }}>{row.screen_path}</span>
               </Field>
               <Field label="상세 내용">
                 <span style={{ whiteSpace: 'pre-wrap' }}>{row.detail}</span>
