@@ -123,6 +123,16 @@ export async function POST(req: NextRequest) {
     const existing = (cur?.comments as Record<string, unknown>[]) ?? []
     const newComment = { jira_comment_id: commentId, author, body: bodyText, created_at: createdAt, attachments }
 
+    console.log('[webhook] event:', event)
+    console.log('[webhook] commentId:', commentId, typeof commentId)
+    console.log('[webhook] createdAt:', createdAt)
+    console.log('[webhook] author:', author)
+    console.log('[webhook] existing comments:', JSON.stringify(existing.map(c => ({
+      jira_comment_id: c.jira_comment_id,
+      author: c.author,
+      created_at: c.created_at,
+    }))))
+
     let updatedComments
     if (event === 'comment_updated') {
       /* 1순위: jira_comment_id 문자열 매칭 */
@@ -133,6 +143,7 @@ export async function POST(req: NextRequest) {
       if (idx < 0) {
         idx = existing.findIndex(c => c.author === author && c.created_at === createdAt)
       }
+      console.log('[webhook] matched idx:', idx)
       if (idx >= 0) {
         updatedComments = existing.map((c, i) => i === idx ? newComment : c)
       } else {
