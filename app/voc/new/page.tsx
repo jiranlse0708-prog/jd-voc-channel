@@ -752,8 +752,9 @@ export default function VocNewPage() {
                 onDrop={onDrop}
                 onClick={() => fileInputRef.current?.click()}
               >
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ color: isDragging ? 'var(--brand-500)' : 'var(--text-muted)', transition: 'color 0.12s' }}>
-                  <path d="M12 16V4M12 4l-4 4M12 4l4 4M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ color: isDragging ? 'var(--brand-500)' : 'var(--brand-400)', transition: 'color 0.12s' }}>
+                  <path d="M12 15V9m0 0l-2.5 2.5M12 9l2.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M6.5 19a4.5 4.5 0 01-.9-8.9 5.5 5.5 0 0110.8 0A3.5 3.5 0 1117.5 19H6.5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
                 </svg>
                 <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-strong)' }}>
                   {files.length > 0
@@ -762,12 +763,7 @@ export default function VocNewPage() {
                   }
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                  이미지 · PDF · 문서 — 파일당 최대 50MB
-                </div>
-                <div className="show-desktop">
-                  <div style={{ fontSize: 11, color: 'var(--text-subtle)', marginTop: 2 }}>
-                    클립보드 스크린샷은 Ctrl + V로 바로 붙여넣을 수 있어요
-                  </div>
+                  이미지 · PDF · 문서 · 파일당 최대 50MB
                 </div>
               </div>
 
