@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useSession, signIn, signOut } from 'next-auth/react'
 import { VOC_TYPE_LABEL } from '@/lib/mapping'
 import Topbar from '@/components/Topbar'
 
@@ -55,7 +56,8 @@ function fmtDateShort(iso: string) {
    메인 컴포넌트
 ════════════════════════════════════════════════════ */
 export default function VocMyPage() {
-  const router = useRouter()
+  const router  = useRouter()
+  const { data: session, status } = useSession()
 
   /* 로컬에서 불러올 이메일 (마운트 후에만 의미 있는 값) */
   const [email, setEmail]               = useState<string | null>(null)
@@ -71,17 +73,25 @@ export default function VocMyPage() {
   /* 필터 */
   const [filter, setFilter] = useState<FilterValue>('전체')
 
-  /* ── 마운트 시 로컬 이메일 확인 ── */
+  /* ── 세션 이메일 우선, 없으면 로컬스토리지 ── */
   useEffect(() => {
-    const saved = (localStorage.getItem(LS_EMAIL) ?? '').trim().toLowerCase()
-    if (saved && EMAIL_RE.test(saved)) {
-      setEmail(saved)
-      void loadItems(saved)
+    if (status === 'loading') return
+    const googleEmail = session?.user?.email?.toLowerCase() ?? null
+    if (googleEmail && EMAIL_RE.test(googleEmail)) {
+      setEmail(googleEmail)
+      localStorage.setItem(LS_EMAIL, googleEmail)
+      void loadItems(googleEmail)
     } else {
-      setShowEmailForm(true)
+      const saved = (localStorage.getItem(LS_EMAIL) ?? '').trim().toLowerCase()
+      if (saved && EMAIL_RE.test(saved)) {
+        setEmail(saved)
+        void loadItems(saved)
+      } else {
+        setShowEmailForm(true)
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [session, status])
 
   /* ── 조회 API 호출 ── */
   const loadItems = async (e: string) => {
@@ -147,25 +157,28 @@ export default function VocMyPage() {
               </h1>
               {email && !showEmailForm && (
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginTop: 8, fontSize: 13, flexWrap: 'wrap' }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)' }}>
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                      <circle cx="8" cy="5.5" r="2.6" stroke="currentColor" strokeWidth="1.4" />
-                      <path d="M3 13.5c0-2.5 2.2-4 5-4s5 1.5 5 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-                    </svg>
-                    조회 이메일
-                  </span>
+                  {session?.user?.image && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={session.user.image} alt="" width={22} height={22} style={{ borderRadius: '50%' }} />
+                  )}
                   <span style={{ color: 'var(--text-strong)', fontWeight: 500 }}>{email}</span>
-                  <button
-                    type="button"
-                    onClick={onChangeEmail}
-                    style={{
-                      background: 'none', border: 0, padding: 0,
-                      color: 'var(--brand-600)', cursor: 'pointer',
-                      fontSize: 12, fontFamily: 'inherit', textDecoration: 'underline',
-                    }}
-                  >
-                    변경
-                  </button>
+                  {session ? (
+                    <button
+                      type="button"
+                      onClick={() => signOut()}
+                      style={{ background: 'none', border: 0, padding: 0, color: 'var(--text-muted)', cursor: 'pointer', fontSize: 12, fontFamily: 'inherit', textDecoration: 'underline' }}
+                    >
+                      로그아웃
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={onChangeEmail}
+                      style={{ background: 'none', border: 0, padding: 0, color: 'var(--brand-600)', cursor: 'pointer', fontSize: 12, fontFamily: 'inherit', textDecoration: 'underline' }}
+                    >
+                      변경
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -180,6 +193,31 @@ export default function VocMyPage() {
           {/* ─── 이메일 입력 폼 ─── */}
           {showEmailForm && (
             <div className="card" style={{ marginBottom: 16 }}>
+              {/* Google 로그인 */}
+              <button
+                type="button"
+                onClick={() => signIn('google')}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                  padding: '10px 16px', marginBottom: 16,
+                  background: '#fff', border: '1px solid var(--surface-border-strong)',
+                  borderRadius: 'var(--r-md)', cursor: 'pointer', fontSize: 14, fontWeight: 500,
+                  color: 'var(--text-strong)', fontFamily: 'inherit',
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+                  <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615Z" fill="#4285F4"/>
+                  <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z" fill="#34A853"/>
+                  <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332Z" fill="#FBBC05"/>
+                  <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58Z" fill="#EA4335"/>
+                </svg>
+                Google 계정으로 로그인
+              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                <div style={{ flex: 1, height: 1, background: 'var(--surface-border)' }} />
+                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>또는 이메일 직접 입력</span>
+                <div style={{ flex: 1, height: 1, background: 'var(--surface-border)' }} />
+              </div>
               <form onSubmit={onSubmitEmail} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <div>
                   <label className="field-label">접수 시 입력한 이메일</label>
