@@ -176,7 +176,7 @@ export default async function VocViewPage({ params, searchParams }: Props) {
           {/* 헤더 */}
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 24 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: 'var(--text-strong)', lineHeight: 1.4, wordBreak: 'break-word' }}>
+              <h1 style={{ margin: 0, fontSize: 26, fontWeight: 700, color: 'var(--text-strong)', lineHeight: 1.4, wordBreak: 'break-word' }}>
                 [{row.product}] {row.summary}
               </h1>
               <p style={{ margin: '6px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>
