@@ -259,7 +259,7 @@ export default async function VocViewPage({ params, searchParams }: Props) {
               <SectionLabel>참고 화면</SectionLabel>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {signedAttachments.map((a, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', background: 'var(--surface-canvas)', border: '1px solid var(--surface-border)', borderRadius: 'var(--r-md)' }}>
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '10px 12px', background: 'var(--surface-canvas)', border: '1px solid var(--surface-border)', borderRadius: 'var(--r-md)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
                         <rect x="2" y="1" width="12" height="14" rx="2" stroke="currentColor" strokeWidth="1.4" />
