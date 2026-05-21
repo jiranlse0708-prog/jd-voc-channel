@@ -177,30 +177,15 @@ export default async function VocViewPage({ params, searchParams }: Props) {
 
           {/* 헤더 */}
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 24 }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: 'var(--text-strong)' }}>
-                  VOC <span style={{ fontFamily: 'var(--font-mono)' }}>#{row.id}</span>
-                </h1>
-                <span className={`status ${status.cls}`}>
-                  <span className="dot" />
-                  {status.label}
-                </span>
-                {row.jira_issue_key && jiraHost && (
-                  <a
-                    href={`${jiraHost}/browse/${row.jira_issue_key}`}
-                    target="_blank" rel="noopener noreferrer"
-                    style={{ fontSize: 12, color: 'var(--brand-600)', fontFamily: 'var(--font-mono)', textDecoration: 'none', background: 'var(--brand-50)', border: '1px solid var(--brand-100)', borderRadius: 6, padding: '3px 8px' }}
-                  >
-                    {row.jira_issue_key} ↗
-                  </a>
-                )}
-              </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: 'var(--text-strong)', lineHeight: 1.4, wordBreak: 'break-word' }}>
+                {row.summary}
+              </h1>
               <p style={{ margin: '6px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>
                 접수일: {fmtDate(row.created_at)}
               </p>
             </div>
-            <Link href="/voc/new" className="btn btn-primary btn-sm">
+            <Link href="/voc/new" className="btn btn-primary btn-sm" style={{ flexShrink: 0 }}>
               <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
                 <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
@@ -217,6 +202,28 @@ export default async function VocViewPage({ params, searchParams }: Props) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(160px,1fr))', gap: 16 }}>
               <Field label="부서">{row.requester_dept}</Field>
               <Field label="접수자">{row.requester_name}</Field>
+              <Field label="상태">
+                <span className={`status ${status.cls}`}>
+                  <span className="dot" />
+                  {status.label}
+                </span>
+              </Field>
+              <Field label="JIRA">
+                {row.jira_issue_key && jiraHost ? (
+                  <a
+                    href={`${jiraHost}/browse/${row.jira_issue_key}`}
+                    target="_blank" rel="noopener noreferrer"
+                    style={{ color: 'var(--brand-600)', fontFamily: 'var(--font-mono)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                  >
+                    {row.jira_issue_key}
+                    <svg width="10" height="10" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                      <path d="M6 3H3v10h10v-3M9 3h4v4M13 3L7.5 8.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </a>
+                ) : (
+                  <span style={{ color: 'var(--text-subtle)' }}>–</span>
+                )}
+              </Field>
             </div>
           </div>
 
