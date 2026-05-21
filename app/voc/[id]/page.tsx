@@ -147,6 +147,19 @@ function jiraInline(text: string, attachments?: CommentAttachment[]) {
   return <>{parts}</>
 }
 
+/** DB 저장 attachments + JIRA API 맵을 합쳐 최종 첨부파일 배열 반환 */
+function resolveAttachments(
+  body: string,
+  stored: CommentAttachment[] | undefined,
+  liveMap: Map<string, string>
+): CommentAttachment[] {
+  const refs = [...body.matchAll(/\[\^([^\]]+)\]/g)].map(m => m[1])
+  return refs.map(name => {
+    const url = liveMap.get(name) ?? stored?.find(a => a.name === name)?.url ?? ''
+    return { name, url }
+  }).filter(a => a.url)
+}
+
 /** 블록: 테이블(||헤더||, |데이터|) + 인라인 마크업 */
 function renderJira(text: string, attachments?: CommentAttachment[]) {
   const lines = text.split('\n')
@@ -269,6 +282,29 @@ export default async function VocViewPage({ params, searchParams }: Props) {
     (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   )
   const jiraHost = process.env.JIRA_HOST?.replace(/\/$/, '')
+
+  /* JIRA 첨부파일 맵 — 댓글에 [^파일명] 있을 때 직접 API 조회 */
+  const jiraAttachMap = new Map<string, string>()
+  const hasAttachRef  = comments.some(c => /\[\^[^\]]+\]/.test(c.body))
+  if (hasAttachRef && row.jira_issue_key && jiraHost) {
+    try {
+      const cred = Buffer.from(
+        `${process.env.JIRA_EMAIL}:${process.env.JIRA_API_TOKEN}`
+      ).toString('base64')
+      const res = await fetch(
+        `${jiraHost}/rest/api/3/issue/${row.jira_issue_key}?fields=attachment`,
+        { headers: { Authorization: `Basic ${cred}`, Accept: 'application/json' }, cache: 'no-store' }
+      )
+      if (res.ok) {
+        const data = await res.json() as { fields?: { attachment?: { filename: string; content: string }[] } }
+        for (const a of data.fields?.attachment ?? []) {
+          jiraAttachMap.set(a.filename, a.content)
+        }
+      }
+    } catch (e) {
+      console.error('[detail] jira attachment fetch', e)
+    }
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -400,7 +436,7 @@ export default async function VocViewPage({ params, searchParams }: Props) {
                         <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-strong)' }}>{c.author}</span>
                         <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{fmtDate(c.created_at)}</span>
                       </div>
-                      <div style={{ fontSize: 13, color: 'var(--text-default)' }}>{renderJira(c.body, c.attachments)}</div>
+                      <div style={{ fontSize: 13, color: 'var(--text-default)' }}>{renderJira(c.body, resolveAttachments(c.body, c.attachments, jiraAttachMap))}</div>
                     </div>
                   </div>
                 ))}
