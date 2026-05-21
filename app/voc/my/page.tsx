@@ -326,11 +326,11 @@ export default function VocMyPage() {
                           </td>
                           <td style={{
                             textAlign: 'center',
-                            fontFamily: 'var(--font-mono)',
                             color: item.comments_count > 0 ? 'var(--text-strong)' : 'var(--text-subtle)',
                             fontWeight: item.comments_count > 0 ? 600 : 400,
+                            fontSize: 13,
                           }}>
-                            {item.comments_count}
+                            {item.comments_count > 0 ? `${item.comments_count}개` : '–'}
                           </td>
                           <td onClick={e => e.stopPropagation()} style={{ textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: 12 }}>
                             {item.jira_issue_key && item.jira_url ? (
