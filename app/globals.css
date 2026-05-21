@@ -301,17 +301,57 @@ body {
 /* ================================================================
    Status / Category badges
    ================================================================ */
+/* 상태별 accent 토큰 */
+.status-received { --st: var(--info-500);    --st-text: var(--info-700); }
+.status-progress { --st: var(--brand-500);   --st-text: var(--brand-700); }
+.status-done     { --st: var(--success-500); --st-text: var(--success-700); }
+.status-hold     { --st: var(--gray-400);    --st-text: var(--gray-600); }
+.status-deleted  { --st: var(--danger-500);  --st-text: var(--danger-700); }
+
+/* 기본 구조 */
 .status {
   display: inline-flex; align-items: center; gap: 6px;
-  height: 24px; padding: 0 9px 0 8px; border-radius: var(--r-pill);
-  font-size: 12px; font-weight: 600; line-height: 1; white-space: nowrap;
+  font-size: 12px; letter-spacing: -0.005em; line-height: 1; white-space: nowrap;
 }
-.status .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: 0 0 auto; }
-.status-received { background: var(--info-50);    color: var(--info-700); }
-.status-progress { background: var(--brand-50);   color: var(--brand-700); }
-.status-done     { background: var(--success-50); color: var(--success-700); }
-.status-hold     { background: var(--gray-100);   color: var(--gray-700); }
-.status-deleted  { background: var(--danger-50);  color: var(--danger-700); text-decoration: line-through; }
+.status .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--st); flex: 0 0 auto; }
+
+/* 처리 중 맥동 애니메이션 */
+@keyframes stPulse {
+  0%   { box-shadow: 0 0 0 0   var(--st); }
+  70%  { box-shadow: 0 0 0 5px transparent; }
+  100% { box-shadow: 0 0 0 0   transparent; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .status-progress .dot { animation: stPulse 1.8s ease-in-out infinite; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .status .dot { animation: none !important; }
+}
+
+/* Minimal */
+[data-badge="minimal"] .status { height: 22px; font-weight: 500; color: var(--text-strong); }
+[data-badge="minimal"] .status-deleted { color: var(--gray-400); }
+
+/* Glow */
+[data-badge="glow"] .status { height: 22px; padding: 0 2px; font-weight: 500; color: var(--text-strong); }
+[data-badge="glow"] .status-deleted { color: var(--gray-400); }
+[data-badge="glow"] .status .dot { position: relative; }
+[data-badge="glow"] .status .dot::after {
+  content: ''; position: absolute; inset: -4px; border-radius: 50%;
+  background: var(--st); opacity: 0.22; filter: blur(3px); z-index: -1;
+}
+
+/* Chip */
+[data-badge="chip"] .status {
+  height: 24px; padding: 0 10px 0 9px; border-radius: 999px; font-weight: 600;
+  background: color-mix(in oklab, var(--st) 11%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--st) 18%, transparent);
+  color: var(--st-text);
+}
+[data-badge="chip"] .status-deleted {
+  background: var(--gray-100); box-shadow: none; color: var(--gray-600);
+}
+[data-badge="chip"] .status-deleted .dot { background: var(--gray-400); }
 
 .cat {
   display: inline-flex; align-items: center; gap: 5px;
