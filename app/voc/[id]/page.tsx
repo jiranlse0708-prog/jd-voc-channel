@@ -132,23 +132,9 @@ function jiraInline(text: string, attachments?: CommentAttachment[]) {
           }}>📎 {filename}</span>
         )
       )
-    } else if (m[0].startsWith('[~accountid:')) {
-      const accountId  = m[3]
-      const displayName = KNOWN_ACCOUNTS[accountId] ?? '담당자'
+    } else if (m[0].startsWith('[~accountid:') || m[0].startsWith('[~')) {
       parts.push(
-        <span key={m.index} style={{
-          display: 'inline-flex', alignItems: 'center',
-          fontSize: 11, fontWeight: 600, color: 'var(--info-700)',
-          background: 'var(--info-50)', borderRadius: 4, padding: '1px 6px',
-        }}>@{displayName}</span>
-      )
-    } else if (m[0].startsWith('[~')) {
-      /* 구형 JIRA username 멘션 */
-      parts.push(
-        <span key={m.index} style={{
-          fontSize: 11, fontWeight: 600, color: 'var(--info-700)',
-          background: 'var(--info-50)', borderRadius: 4, padding: '1px 6px',
-        }}>@{m[4]}</span>
+        <span key={m.index} style={{ fontSize: 12, fontWeight: 600, color: 'var(--gray-600)' }}>[대댓글]</span>
       )
     } else if (m[0].startsWith('*')) {
       parts.push(<strong key={m.index}>{m[5]}</strong>)
