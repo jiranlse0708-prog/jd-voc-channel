@@ -146,8 +146,15 @@ export default function VocMyPage() {
                 내 접수 조회
               </h1>
               {email && !showEmailForm && (
-                <p style={{ margin: '6px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)' }}>{email}</span>{' '}
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginTop: 8, fontSize: 13, flexWrap: 'wrap' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)' }}>
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                      <circle cx="8" cy="5.5" r="2.6" stroke="currentColor" strokeWidth="1.4" />
+                      <path d="M3 13.5c0-2.5 2.2-4 5-4s5 1.5 5 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                    </svg>
+                    조회 이메일
+                  </span>
+                  <span style={{ color: 'var(--text-strong)', fontWeight: 500 }}>{email}</span>
                   <button
                     type="button"
                     onClick={onChangeEmail}
@@ -157,9 +164,9 @@ export default function VocMyPage() {
                       fontSize: 12, fontFamily: 'inherit', textDecoration: 'underline',
                     }}
                   >
-                    다른 이메일로 조회
+                    변경
                   </button>
-                </p>
+                </div>
               )}
             </div>
             <Link href="/voc/new" className="btn btn-primary btn-sm">
