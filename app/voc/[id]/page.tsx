@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase-server'
 import { VOC_TYPE_LABEL, PRIORITY_LABEL } from '@/lib/mapping'
+import Topbar from '@/components/Topbar'
 
 const BUCKET = 'voc-attachments'
 
@@ -30,13 +31,67 @@ interface VocRow {
   created_at:      string
 }
 
-/* ─── 상태 표시 매핑 ─── */
+/* ─── 상태 표시 매핑 (JIRA 워크플로우 VOC 검토 이슈 타입 기준) ─── */
 const STATUS: Record<string, { cls: string; label: string }> = {
-  '접수됨': { cls: 'status-received', label: '접수됨' },
-  '처리중': { cls: 'status-progress', label: '처리중' },
-  '완료':   { cls: 'status-done',     label: '완료' },
-  '보류':   { cls: 'status-hold',     label: '보류' },
-  '반려':   { cls: 'status-deleted',  label: '반려' },
+  '접수':    { cls: 'status-received', label: '접수' },
+  '처리 중': { cls: 'status-progress', label: '처리 중' },
+  '완료':    { cls: 'status-done',     label: '완료' },
+  '보류':    { cls: 'status-hold',     label: '보류' },
+  '삭제':    { cls: 'status-deleted',  label: '삭제' },
+}
+
+/* ─── 워크플로우 stepper 단계 (JIRA 정상 흐름) ─── */
+const WORKFLOW_STAGES = ['접수', '처리 중', '완료'] as const
+
+/* ─── Stepper 컴포넌트 ─── */
+function WorkflowStepper({ status }: { status: string }) {
+  // 삭제: stepper 대체 뱃지
+  if (status === '삭제') {
+    return (
+      <div className="card workflow-card" style={{ marginBottom: 16 }}>
+        <span className="workflow-badge deleted">
+          <span aria-hidden="true">✕</span> 삭제된 접수입니다
+        </span>
+      </div>
+    )
+  }
+
+  const stageIdx = WORKFLOW_STAGES.indexOf(status as typeof WORKFLOW_STAGES[number])
+  // 보류 또는 알 수 없는 상태: stageIdx = -1 → 모든 단계 inactive
+
+  return (
+    <div className="card workflow-card" style={{ marginBottom: 16 }}>
+      {status === '보류' && (
+        <div style={{ marginBottom: 12 }}>
+          <span className="workflow-badge hold">
+            <span aria-hidden="true">⏸</span> 보류 중
+          </span>
+        </div>
+      )}
+      <div className="stepper">
+        {WORKFLOW_STAGES.map((stage, idx) => {
+          let dotCls = 'inactive'
+          let labelCls = 'inactive'
+          if (stageIdx >= 0) {
+            if (idx < stageIdx) { dotCls = 'done'; labelCls = 'done' }
+            else if (idx === stageIdx) { dotCls = 'active'; labelCls = 'active' }
+          }
+          const dotContent = dotCls === 'done' ? '✓' : String(idx + 1)
+          return (
+            <span key={stage} style={{ display: 'flex', alignItems: 'center', flex: idx === WORKFLOW_STAGES.length - 1 ? '0 0 auto' : '1 1 0', minWidth: 0 }}>
+              <span className="stepper-step">
+                <span className={`stepper-dot ${dotCls}`}>{dotContent}</span>
+                <span className={`stepper-label ${labelCls}`}>{stage}</span>
+              </span>
+              {idx < WORKFLOW_STAGES.length - 1 && (
+                <span className={`stepper-line ${idx < stageIdx ? 'done' : ''}`} />
+              )}
+            </span>
+          )
+        })}
+      </div>
+    </div>
+  )
 }
 
 /* ─── 유틸 ─── */
@@ -113,12 +168,7 @@ export default async function VocViewPage({ params, searchParams }: Props) {
   return (
     <div className="min-h-screen flex flex-col">
       {/* ─── Topbar ─── */}
-      <header className="topbar">
-        <Link href="/" className="topbar-brand" style={{ textDecoration: 'none' }}>
-          <div className="logo">V</div>
-          <span>서버솔루션팀 VOC 채널</span>
-        </Link>
-      </header>
+      <Topbar />
 
       {/* ─── 본문 ─── */}
       <main className="flex-1" style={{ background: 'var(--surface-canvas)', padding: '32px 16px 80px' }}>
@@ -156,6 +206,9 @@ export default async function VocViewPage({ params, searchParams }: Props) {
               새 VOC 접수
             </Link>
           </div>
+
+          {/* ─── 워크플로우 Stepper ─── */}
+          <WorkflowStepper status={row.current_status} />
 
           {/* ─── 접수 정보 ─── */}
           <div className="card" style={{ marginBottom: 16 }}>

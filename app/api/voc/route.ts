@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
 
     const dept       = get('dept')
     const name       = get('name')
-    const email      = get('email')
+    const email      = get('email').toLowerCase()  // 정규화: lowercase + trim (get()이 trim 처리)
     const product    = get('product')
     const vocType    = get('vocType')
     const summary    = get('summary')
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     const dueDate    = get('dueDate') || null
 
     /* ── 2. 서버 기본 검증 ── */
-    const required = { dept, name, product, vocType, summary, purpose, screenPath, detail }
+    const required = { dept, name, email, product, vocType, summary, purpose, screenPath, detail }
     const missing = Object.entries(required)
       .filter(([, v]) => !v)
       .map(([k]) => k)
@@ -37,6 +37,15 @@ export async function POST(req: NextRequest) {
     if (missing.length > 0) {
       return NextResponse.json(
         { error: `필수 항목 누락: ${missing.join(', ')}` },
+        { status: 400 }
+      )
+    }
+
+    // 이메일 형식 검증
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!EMAIL_RE.test(email)) {
+      return NextResponse.json(
+        { error: '이메일 형식이 올바르지 않습니다.' },
         { status: 400 }
       )
     }
@@ -95,7 +104,7 @@ export async function POST(req: NextRequest) {
       .insert({
         requester_dept:  dept,
         requester_name:  name,
-        requester_email: email || null,
+        requester_email: email,  // 필수, 이미 정규화·검증 완료
         product,
         voc_type:        vocType,
         summary,
@@ -106,7 +115,7 @@ export async function POST(req: NextRequest) {
         detail,
         due_date:        dueDate,
         attachments,
-        current_status:  '접수됨',
+        current_status:  '접수',  // JIRA 워크플로우 첫 상태와 일치
         jira_issue_key:  null,
       })
       .select('id, view_token')

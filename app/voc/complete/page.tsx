@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import CopyButton from './CopyButton'
+import Topbar from '@/components/Topbar'
 
 interface Props {
   searchParams: Promise<{ id?: string; token?: string; jira?: string }>
@@ -12,12 +13,7 @@ export default async function CompletePage({ searchParams }: Props) {
   if (!id || !token) {
     return (
       <div className="min-h-screen flex flex-col">
-        <header className="topbar">
-          <Link href="/" className="topbar-brand" style={{ textDecoration: 'none' }}>
-            <div className="logo">V</div>
-            <span>서버솔루션팀 VOC 채널</span>
-          </Link>
-        </header>
+        <Topbar />
         <main className="flex-1 flex items-center justify-center" style={{ padding: '40px 16px' }}>
           <div style={{ textAlign: 'center' }}>
             <p style={{ color: 'var(--text-muted)' }}>잘못된 접근입니다.</p>
@@ -38,12 +34,7 @@ export default async function CompletePage({ searchParams }: Props) {
   return (
     <div className="min-h-screen flex flex-col">
       {/* ─── Topbar ─── */}
-      <header className="topbar">
-        <Link href="/" className="topbar-brand" style={{ textDecoration: 'none' }}>
-          <div className="logo">V</div>
-          <span>서버솔루션팀 VOC 채널</span>
-        </Link>
-      </header>
+      <Topbar />
 
       {/* ─── 본문 ─── */}
       <main
@@ -74,7 +65,7 @@ export default async function CompletePage({ searchParams }: Props) {
               VOC가 접수됐습니다
             </h1>
             <p style={{ fontSize: 14, color: 'var(--text-muted)', margin: 0 }}>
-              진행 상황은 JIRA에서 확인할 수 있습니다.
+              진행 상황은 JIRA 또는 [내 접수 조회]에서 확인할 수 있습니다.
             </p>
           </div>
 
@@ -127,7 +118,13 @@ export default async function CompletePage({ searchParams }: Props) {
           </div>
 
           {/* 하단 버튼 */}
-          <div className="flex justify-center" style={{ marginTop: 24 }}>
+          <div className="flex flex-col sm:flex-row justify-center gap-3" style={{ marginTop: 24 }}>
+            <Link href="/voc/my" className="btn btn-secondary btn-lg" style={{ justifyContent: 'center' }}>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <path d="M2 4h12M2 8h12M2 12h8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+              </svg>
+              내 접수 조회
+            </Link>
             <Link href="/voc/new" className="btn btn-primary btn-lg" style={{ justifyContent: 'center' }}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
                 <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>

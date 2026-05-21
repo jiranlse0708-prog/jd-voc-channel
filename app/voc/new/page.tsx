@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import type { FormEvent, DragEvent, ChangeEvent, KeyboardEvent } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import Topbar from '@/components/Topbar'
 
 /* ── 상수 ── */
 const PRODUCTS = [
@@ -31,13 +31,17 @@ const MAX_TOTAL_BYTES = 200 * 1024 * 1024 // 200 MB
 const LS = {
   dept:     'voc.requester.dept',
   name:     'voc.requester.name',
+  email:    'voc.requester.email',
   remember: 'voc.requester.remember',
   draft:    'voc.draft',
 } as const
 
+/* ── 이메일 형식 (간단 검증) ── */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 /* ── 타입 ── */
 type ErrorKey =
-  | 'dept' | 'name'
+  | 'dept' | 'name' | 'email'
   | 'product' | 'vocType'
   | 'summary' | 'purpose' | 'screenPath' | 'detail'
   | 'files'
@@ -113,8 +117,9 @@ function AutoTextarea({ value, minHeight = 96, style, ...rest }: AutoTextareaPro
 ════════════════════════════════════════════════════ */
 export default function VocNewPage() {
   /* 요청자 */
-  const [dept, setDept] = useState('')
-  const [name, setName] = useState('')
+  const [dept,  setDept]  = useState('')
+  const [name,  setName]  = useState('')
+  const [email, setEmail] = useState('')
 
   /* 분류 */
   const [product, setProduct] = useState<string>('SERVERFILTER')
@@ -167,6 +172,7 @@ export default function VocNewPage() {
     if (rememberOn) {
       setDept(localStorage.getItem(LS.dept) ?? '')
       setName(localStorage.getItem(LS.name) ?? '')
+      setEmail(localStorage.getItem(LS.email) ?? '')
     }
 
     /* 드래프트 복원 — 작성 중이던 폼이 있으면 자동으로 채움 */
@@ -191,8 +197,9 @@ export default function VocNewPage() {
   }, [])
 
   /* ── 로컬스토리지 저장 (remember ON일 때만) ── */
-  useEffect(() => { if (lsLoaded.current && remember) localStorage.setItem(LS.dept, dept) }, [dept, remember])
-  useEffect(() => { if (lsLoaded.current && remember) localStorage.setItem(LS.name, name) }, [name, remember])
+  useEffect(() => { if (lsLoaded.current && remember) localStorage.setItem(LS.dept,  dept)  }, [dept,  remember])
+  useEffect(() => { if (lsLoaded.current && remember) localStorage.setItem(LS.name,  name)  }, [name,  remember])
+  useEffect(() => { if (lsLoaded.current && remember) localStorage.setItem(LS.email, email) }, [email, remember])
 
   /* ── 드래프트 자동 저장 (500ms 디바운스) ── */
   useEffect(() => {
@@ -211,12 +218,14 @@ export default function VocNewPage() {
     if (!lsLoaded.current) return
     if (remember) {
       localStorage.setItem(LS.remember, '1')
-      localStorage.setItem(LS.dept, dept)
-      localStorage.setItem(LS.name, name)
+      localStorage.setItem(LS.dept,  dept)
+      localStorage.setItem(LS.name,  name)
+      localStorage.setItem(LS.email, email)
     } else {
       localStorage.setItem(LS.remember, '0')
       localStorage.removeItem(LS.dept)
       localStorage.removeItem(LS.name)
+      localStorage.removeItem(LS.email)
     }
   }, [remember]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -325,6 +334,8 @@ export default function VocNewPage() {
     const e: Errors = {}
     if (!dept.trim())       e.dept       = '부서를 입력해 주세요.'
     if (!name.trim())       e.name       = '이름을 입력해 주세요.'
+    if (!email.trim())      e.email      = '이메일을 입력해 주세요.'
+    else if (!EMAIL_RE.test(email.trim())) e.email = '올바른 이메일 형식이 아닙니다.'
     if (!product)           e.product    = '제품을 선택해 주세요.'
     if (!vocType)           e.vocType    = 'VOC 유형을 선택해 주세요.'
     if (!summary.trim())    e.summary    = '제목을 입력해 주세요.'
@@ -358,6 +369,7 @@ export default function VocNewPage() {
       const fd = new FormData()
       fd.append('dept',       dept)
       fd.append('name',       name)
+      fd.append('email',      email.trim())
       fd.append('product',    product)
       fd.append('vocType',    vocType)
       fd.append('summary',    summary)
@@ -392,12 +404,7 @@ export default function VocNewPage() {
     <div className="min-h-screen flex flex-col">
 
       {/* ─── Topbar ─── */}
-      <header className="topbar">
-        <Link href="/" className="topbar-brand" style={{ textDecoration: 'none' }}>
-          <div className="logo">V</div>
-          <span>서버솔루션팀 VOC 채널</span>
-        </Link>
-      </header>
+      <Topbar />
 
       {/* ─── 스크롤 진행률 ─── */}
       <div
@@ -452,6 +459,23 @@ export default function VocNewPage() {
               </div>
             </div>
 
+            <div>
+              <label className="field-label">이메일<span className="req">*</span></label>
+              <input
+                className={`input${errors.email ? ' invalid' : ''}`}
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                value={email}
+                onChange={e => { setEmail(e.target.value); setErrors(p => { const { email: _, ...r } = p; return r }) }}
+                placeholder="예: hong@jiran.com"
+              />
+              {errors.email
+                ? <FieldError msg={errors.email} />
+                : <p className="field-help">접수 내역 조회·향후 알림에 사용됩니다.</p>
+              }
+            </div>
+
             {/* 자동 저장 동의 */}
             <div style={{
               display: 'flex', alignItems: 'center',
@@ -466,7 +490,7 @@ export default function VocNewPage() {
                   tabIndex={0}
                   onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setRemember(v => !v) } }}
                 />
-                부서·이름 기억하기
+                부서·이름·이메일 기억하기
               </label>
             </div>
           </div>
@@ -824,6 +848,7 @@ export default function VocNewPage() {
                 if (!window.confirm('입력한 내용이 모두 사라집니다. 초기화할까요?')) return
                 setDept('')
                 setName('')
+                setEmail('')
                 setProduct('SERVERFILTER')
                 setVocType('')
                 setSummary('')

@@ -28,7 +28,7 @@ npm run lint     # ESLint
 사용자 폼 제출 (app/voc/new/page.tsx)
   → POST /api/voc
     1. Supabase Storage에 첨부파일 업로드
-    2. voc_submission 테이블에 행 삽입 (status: '접수됨')
+    2. voc_submission 테이블에 행 삽입 (status: '접수')
     3. JIRA 이슈 생성 + 첨부파일 업로드 → jira_issue_key DB 반영
     4. 이메일 주소 있으면 Resend로 확인 메일 발송 (비동기)
   → 완료 페이지 (app/voc/complete)로 redirect
