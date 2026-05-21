@@ -299,14 +299,14 @@ export default function VocMyPage() {
                 <table className="tbl">
                   <thead>
                     <tr>
-                      <th style={{ width: 56 }}>순번</th>
-                      <th style={{ width: 110 }}>제품</th>
-                      <th style={{ width: 84 }}>유형</th>
+                      <th style={{ width: 56, textAlign: 'center' }}>순번</th>
+                      <th style={{ width: 110, textAlign: 'center' }}>제품</th>
+                      <th style={{ width: 84, textAlign: 'center' }}>유형</th>
                       <th>제목</th>
-                      <th style={{ width: 90 }}>상태</th>
-                      <th style={{ width: 80 }}>댓글</th>
-                      <th style={{ width: 110 }}>JIRA</th>
-                      <th style={{ width: 110 }}>접수일</th>
+                      <th style={{ width: 90, textAlign: 'center' }}>상태</th>
+                      <th style={{ width: 80, textAlign: 'center' }}>댓글</th>
+                      <th style={{ width: 110, textAlign: 'center' }}>JIRA</th>
+                      <th style={{ width: 110, textAlign: 'center' }}>접수일</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -314,11 +314,11 @@ export default function VocMyPage() {
                       const status = STATUS_DISPLAY[item.current_status] ?? { cls: 'status-received', label: item.current_status }
                       return (
                         <tr key={item.id} onClick={() => goDetail(item)} style={{ cursor: 'pointer' }}>
-                          <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>{idx + 1}</td>
-                          <td>{item.product}</td>
-                          <td>{VOC_TYPE_LABEL[item.voc_type] ?? item.voc_type}</td>
+                          <td style={{ textAlign: 'center', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>{idx + 1}</td>
+                          <td style={{ textAlign: 'center' }}>{item.product}</td>
+                          <td style={{ textAlign: 'center' }}>{VOC_TYPE_LABEL[item.voc_type] ?? item.voc_type}</td>
                           <td className="voc-title-cell">{item.summary}</td>
-                          <td>
+                          <td style={{ textAlign: 'center' }}>
                             <span className={`status ${status.cls}`}>
                               <span className="dot" />
                               {status.label}
@@ -332,7 +332,7 @@ export default function VocMyPage() {
                           }}>
                             {item.comments_count}
                           </td>
-                          <td onClick={e => e.stopPropagation()} style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>
+                          <td onClick={e => e.stopPropagation()} style={{ textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: 12 }}>
                             {item.jira_issue_key && item.jira_url ? (
                               <a
                                 href={item.jira_url}
@@ -349,7 +349,7 @@ export default function VocMyPage() {
                               <span style={{ color: 'var(--text-subtle)' }}>–</span>
                             )}
                           </td>
-                          <td style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}
+                          <td style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}
                               title={fmtDate(item.created_at)}>
                             {fmtDateShort(item.created_at)}
                           </td>
