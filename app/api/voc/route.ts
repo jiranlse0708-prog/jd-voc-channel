@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
 
       if (uploadErr) {
         console.error(`[Storage upload failed] ${f.name}:`, uploadErr.message)
-        failedUploads.push(f.name)
+        failedUploads.push(`${f.name}(${uploadErr.message})`)
         continue
       }
       attachments.push({ name: f.name, size: f.size, type: f.type, path: filePath })
