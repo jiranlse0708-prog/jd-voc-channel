@@ -58,14 +58,8 @@ export async function POST(req: NextRequest) {
       `,
     })
   } catch (e) {
-    const msg  = e instanceof Error ? e.message : String(e)
-    const user = process.env.GMAIL_USER ?? '(미설정)'
-    const pass = process.env.GMAIL_APP_PASSWORD
-    const passInfo = pass ? `${pass.length}자리 / 공백${pass.includes(' ') ? '있음' : '없음'}` : '(미설정)'
     console.error('[send-otp] email error', e)
-    return NextResponse.json({
-      error: `[DEBUG] user=${user} / pass=${passInfo} / ${msg}`,
-    }, { status: 500 })
+    return NextResponse.json({ error: '이메일 발송에 실패했습니다.' }, { status: 500 })
   }
 
   return NextResponse.json({ ok: true })
