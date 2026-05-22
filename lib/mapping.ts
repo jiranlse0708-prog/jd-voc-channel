@@ -20,8 +20,8 @@ export const PRODUCT_ASSIGNEE_NAME: Record<string, string> = {
 }
 
 export const PRODUCT_LABEL: Record<string, string> = {
-  SERVERFILTER: 'ServerFilter',
-  IDFILTER:     'IDFilter',
+  SERVERFILTER: 'SERVERFILTER',
+  IDFILTER:     'IDFILTER',
 }
 
 export const VOC_TYPE_LABEL: Record<string, string> = {

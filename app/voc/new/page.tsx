@@ -8,8 +8,8 @@ import FilePreview from '@/components/FilePreview'
 
 /* ── 상수 ── */
 const PRODUCTS = [
-  { value: 'SERVERFILTER', label: 'ServerFilter' },
-  { value: 'IDFILTER',     label: 'IDFilter' },
+  { value: 'SERVERFILTER', label: 'SERVERFILTER' },
+  { value: 'IDFILTER',     label: 'IDFILTER' },
 ] as const
 
 const VOC_TYPES = [
