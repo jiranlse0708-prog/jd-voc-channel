@@ -57,24 +57,26 @@ async function sendMail(to: string, subject: string, html: string) {
 
 /* ─── 1. 접수 확인 ─── */
 export async function sendSubmissionConfirm(params: {
-  to:      string
-  vocId:   number
-  token:   string
-  summary: string
-  product: string
-  vocType: string
+  to:       string
+  vocId:    number
+  token:    string
+  summary:  string
+  product:  string
+  vocType:  string
+  jiraKey?: string
 }) {
-  const subject = `[JD VOC 채널] 접수 완료 #${params.vocId} ${params.summary}`
+  const ref     = params.jiraKey ?? `#${params.vocId}`
+  const subject = `[JD VOC 채널] 접수 완료 - ${params.summary}`
   if (skipEmail(params.to, subject)) return
   const viewUrl = `${SITE()}/voc/${params.vocId}?token=${params.token}`
   const body = `
     <h2 style="margin:0 0 4px;font-size:20px;color:#111827;">VOC가 접수됐습니다</h2>
     <p style="margin:0 0 20px;font-size:14px;color:#6b7280;">제품팀이 검토 후 피드백을 드리겠습니다.</p>
     <table cellpadding="0" cellspacing="0" style="width:100%;border-top:1px solid #e5e7eb;">
-      ${infoRow('접수 번호', `#${params.vocId}`)}
-      ${infoRow('제품',     params.product)}
-      ${infoRow('유형',     params.vocType)}
-      ${infoRow('요약',     params.summary)}
+      ${infoRow('JIRA',  ref)}
+      ${infoRow('제품',  params.product)}
+      ${infoRow('유형',  params.vocType)}
+      ${infoRow('제목',  params.summary)}
     </table>
     <p style="margin:16px 0 0;font-size:13px;color:#6b7280;">아래 링크를 저장해두시면 언제든지 접수 상태를 확인할 수 있습니다.</p>
     ${btn(viewUrl, '접수 내용 조회하기')}
@@ -91,13 +93,15 @@ export async function sendStatusChanged(params: {
   oldStatus: string
   newStatus: string
   changedBy: string
+  jiraKey?:  string
 }) {
-  const subject = `[JD VOC 채널] 상태 변경 #${params.vocId} → ${params.newStatus}`
+  const ref     = params.jiraKey ?? `#${params.vocId}`
+  const subject = `[JD VOC 채널] 상태 변경 - ${params.summary} → ${params.newStatus}`
   if (skipEmail(params.to, subject)) return
   const viewUrl = `${SITE()}/voc/${params.vocId}?token=${params.token}`
   const body = `
     <h2 style="margin:0 0 4px;font-size:20px;color:#111827;">VOC 처리 상태가 변경됐습니다</h2>
-    <p style="margin:0 0 20px;font-size:14px;color:#6b7280;">#${params.vocId} ${params.summary}</p>
+    <p style="margin:0 0 20px;font-size:14px;color:#6b7280;">${ref} · ${params.summary}</p>
     <div style="display:flex;align-items:center;gap:12px;padding:16px;background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;">
       <span style="font-size:14px;color:#6b7280;">${params.oldStatus}</span>
       <span style="font-size:14px;color:#9ca3af;">→</span>
@@ -117,13 +121,15 @@ export async function sendCommentAdded(params: {
   summary:     string
   author:      string
   commentText: string
+  jiraKey?:    string
 }) {
-  const subject = `[JD VOC 채널] 새 댓글 #${params.vocId} ${params.summary}`
+  const ref     = params.jiraKey ?? `#${params.vocId}`
+  const subject = `[JD VOC 채널] 새 댓글 - ${params.summary}`
   if (skipEmail(params.to, subject)) return
   const viewUrl = `${SITE()}/voc/${params.vocId}?token=${params.token}`
   const body = `
     <h2 style="margin:0 0 4px;font-size:20px;color:#111827;">담당자가 댓글을 남겼습니다</h2>
-    <p style="margin:0 0 20px;font-size:14px;color:#6b7280;">#${params.vocId} ${params.summary}</p>
+    <p style="margin:0 0 20px;font-size:14px;color:#6b7280;">${ref} · ${params.summary}</p>
     <div style="padding:16px;background:#f9fafb;border-radius:8px;border-left:3px solid #F78121;">
       <p style="margin:0 0 6px;font-size:12px;font-weight:600;color:#F78121;">${params.author}</p>
       <p style="margin:0;font-size:14px;color:#111827;line-height:1.6;white-space:pre-wrap;">${params.commentText}</p>

@@ -180,7 +180,8 @@ export async function POST(req: NextRequest) {
         token:   data.view_token,
         summary,
         product,
-        vocType: VOC_TYPE_LABEL[vocType] ?? vocType,
+        vocType:  VOC_TYPE_LABEL[vocType] ?? vocType,
+        jiraKey:  jiraKey,
       }).catch(e => console.error('[mail sendSubmissionConfirm]', e))
     }
 

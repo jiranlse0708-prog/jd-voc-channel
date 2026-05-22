@@ -70,6 +70,7 @@ export async function POST(req: NextRequest) {
           to:        row.requester_email,
           vocId:     row.id,
           token:     row.view_token,
+          jiraKey:   issueKey,
           summary:   row.summary,
           oldStatus,
           newStatus,
@@ -161,6 +162,7 @@ export async function POST(req: NextRequest) {
         summary:     row.summary,
         author,
         commentText: bodyText,
+        jiraKey:     issueKey,
       }).catch(e => console.error('[mail sendCommentAdded]', e))
     }
   }
