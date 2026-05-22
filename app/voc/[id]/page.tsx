@@ -154,8 +154,11 @@ function jiraInline(text: string, attachments?: CommentAttachment[]) {
         )
       )
     } else if (m[0].startsWith('[~accountid:') || m[0].startsWith('[~')) {
+      const displayName = m[4]
+        ? (KNOWN_ACCOUNTS[m[4]] ?? '담당자')
+        : (m[5] ?? '담당자')
       parts.push(
-        <span key={m.index} style={{ fontSize: 12, fontWeight: 600, color: 'var(--gray-600)' }}>[대댓글]</span>
+        <span key={m.index} style={{ fontSize: 12, fontWeight: 600, color: 'var(--brand-600)' }}>@{displayName}</span>
       )
     } else if (m[0].startsWith('*')) {
       parts.push(<strong key={m.index}>{m[6]}</strong>)
