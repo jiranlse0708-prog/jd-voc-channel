@@ -374,7 +374,6 @@ export default function VocNewPage() {
 
     // API 호출
     setIsSubmitting(true)
-    setSubmitError(null)
 
     try {
       const fd = new FormData()
@@ -827,7 +826,6 @@ export default function VocNewPage() {
                 setDueDate('')
                 setFiles([])
                 setErrors({})
-                setSubmitError(null)
                 localStorage.removeItem(LS.draft)
                 localStorage.removeItem(LS.dept)
                 localStorage.removeItem(LS.name)
