@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
       if (jiraErr instanceof JiraAuthError) {
         console.error('[JIRA 인증 오류]', jiraErr)
         return NextResponse.json(
-          { error: 'JIRA 연동 오류가 발생했습니다. 관리자에게 문의해 주세요.' },
+          { error: 'JIRA 연동에 인증 오류가 발생했습니다. 관리자에게 문의해 주세요.' },
           { status: 500 }
         )
       }
