@@ -340,8 +340,9 @@ export default async function VocViewPage({ params, searchParams }: Props) {
           <div className="card" style={{ marginBottom: 16 }}>
             <SectionLabel>접수 정보</SectionLabel>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(160px,1fr))', gap: 16 }}>
-              <Field label="부서">{row.requester_dept}</Field>
               <Field label="접수자">{row.requester_name}</Field>
+              <Field label="부서">{row.requester_dept}</Field>
+              <Field label="접수일시">{fmtDate(row.created_at)}</Field>
               <Field label="상태">
                 <span className={`status ${status.cls}`}>
                   <span className="dot" />
