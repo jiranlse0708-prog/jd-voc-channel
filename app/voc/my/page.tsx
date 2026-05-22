@@ -302,7 +302,7 @@ export default function VocMyPage() {
                     </p>
 
                     {/* OTP 박스 */}
-                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: 6, justifyContent: 'center', alignItems: 'center' }}>
                       {[0, 1, 2, 3, 4, 5].map(idx => (
                         <input
                           key={idx}
