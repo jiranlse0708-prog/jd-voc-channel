@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { VOC_TYPE_LABEL } from '@/lib/mapping'
@@ -65,7 +65,8 @@ export default function VocMyPage() {
 
   /* OTP 단계: 'email' | 'code' */
   const [step, setStep]           = useState<'email' | 'code'>('email')
-  const [codeInput, setCodeInput] = useState('')
+  const [digits, setDigits]       = useState<string[]>(Array(6).fill(''))
+  const digitRefs                 = useRef<(HTMLInputElement | null)[]>([])
   const [codeError, setCodeError] = useState<string | null>(null)
   const [sending, setSending]     = useState(false)
   const [verifying, setVerifying] = useState(false)
@@ -139,18 +140,49 @@ export default function VocMyPage() {
     }
   }
 
+  /* ── 자릿수 입력 핸들러 ── */
+  const onDigitInput = (idx: number, val: string) => {
+    const char = val.replace(/\s/g, '').toUpperCase().slice(-1)
+    const next = [...digits]; next[idx] = char; setDigits(next)
+    setCodeError(null)
+    if (char && idx < 5) digitRefs.current[idx + 1]?.focus()
+  }
+  const onDigitKeyDown = (idx: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace') {
+      if (digits[idx]) { const n = [...digits]; n[idx] = ''; setDigits(n) }
+      else if (idx > 0) digitRefs.current[idx - 1]?.focus()
+    } else if (e.key === 'ArrowLeft' && idx > 0) {
+      digitRefs.current[idx - 1]?.focus()
+    } else if (e.key === 'ArrowRight' && idx < 5) {
+      digitRefs.current[idx + 1]?.focus()
+    }
+  }
+  const onDigitPaste = (e: React.ClipboardEvent) => {
+    e.preventDefault()
+    const text = e.clipboardData.getData('text').replace(/\s/g, '').toUpperCase().slice(0, 6)
+    const next = Array(6).fill('')
+    text.split('').forEach((c, i) => { next[i] = c })
+    setDigits(next)
+    digitRefs.current[Math.min(text.length, 5)]?.focus()
+  }
+
+  /* ── step → code 전환 시 첫 번째 박스 포커스 ── */
+  useEffect(() => {
+    if (step === 'code') setTimeout(() => digitRefs.current[0]?.focus(), 50)
+  }, [step])
+
   /* ── OTP 확인 ── */
   const onVerifyOtp = async (ev: React.FormEvent) => {
     ev.preventDefault()
-    const code = codeInput.trim()
-    if (!code) { setCodeError('인증코드를 입력해 주세요.'); return }
+    const code = digits.join('')
+    if (code.length < 6) { setCodeError('인증코드 6자리를 모두 입력해 주세요.'); return }
     setCodeError(null)
     setVerifying(true)
     try {
       const res = await fetch('/api/voc/auth/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailInput.trim().toLowerCase(), code }),
+        body: JSON.stringify({ email: emailInput.trim().toLowerCase(), code: digits.join('') }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
@@ -174,7 +206,7 @@ export default function VocMyPage() {
     setItems([])
     setStep('email')
     setEmailInput('')
-    setCodeInput('')
+    setDigits(Array(6).fill(''))
   }
 
   /* ── 필터링 ── */
@@ -261,24 +293,68 @@ export default function VocMyPage() {
 
               {/* STEP 2: 코드 입력 */}
               {step === 'code' && (
-                <form onSubmit={onVerifyOtp} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <div>
-                    <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>
-                      <strong>{emailInput}</strong>으로 인증코드를 발송했어요.<br/>
-                      이메일을 확인하고 코드를 입력해 주세요. (10분 유효)
+                <form onSubmit={onVerifyOtp} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <p style={{ margin: '0 0 24px', fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.7 }}>
+                      <strong style={{ color: 'var(--text-strong)' }}>{emailInput}</strong>으로<br/>
+                      인증코드를 발송했어요. (10분 유효)
                     </p>
-                    <label className="field-label">인증코드</label>
-                    <input
-                      className={`input${codeError ? ' invalid' : ''}`}
-                      type="text" inputMode="numeric" autoFocus
-                      maxLength={6}
-                      value={codeInput}
-                      onChange={ev => { setCodeInput(ev.target.value.toUpperCase()); setCodeError(null) }}
-                      placeholder="6자리 코드 입력"
-                      style={{ letterSpacing: '0.2em', fontSize: 18, fontFamily: 'var(--font-mono)' }}
-                    />
+
+                    {/* OTP 박스 */}
+                    <div style={{ display: 'flex', gap: 8, justifyContent: 'center', alignItems: 'center' }}>
+                      {[0, 1, 2].map(idx => (
+                        <input
+                          key={idx}
+                          ref={el => { digitRefs.current[idx] = el }}
+                          type="text"
+                          inputMode="text"
+                          maxLength={1}
+                          value={digits[idx]}
+                          onChange={e => onDigitInput(idx, e.target.value)}
+                          onKeyDown={e => onDigitKeyDown(idx, e)}
+                          onPaste={onDigitPaste}
+                          style={{
+                            width: 52, height: 64,
+                            border: `1.5px solid ${digits[idx] ? 'var(--brand-500)' : 'var(--surface-border)'}`,
+                            borderRadius: 12,
+                            fontSize: 26, fontWeight: 700, textAlign: 'center',
+                            color: 'var(--text-strong)',
+                            background: digits[idx] ? 'var(--brand-50, #fff8f2)' : '#fff',
+                            outline: 'none', caretColor: 'transparent',
+                            fontFamily: 'var(--font-mono)',
+                            transition: 'border-color 0.15s, background 0.15s',
+                          }}
+                        />
+                      ))}
+                      <span style={{ fontSize: 20, color: 'var(--text-subtle)', margin: '0 2px', lineHeight: 1 }}>—</span>
+                      {[3, 4, 5].map(idx => (
+                        <input
+                          key={idx}
+                          ref={el => { digitRefs.current[idx] = el }}
+                          type="text"
+                          inputMode="text"
+                          maxLength={1}
+                          value={digits[idx]}
+                          onChange={e => onDigitInput(idx, e.target.value)}
+                          onKeyDown={e => onDigitKeyDown(idx, e)}
+                          onPaste={onDigitPaste}
+                          style={{
+                            width: 52, height: 64,
+                            border: `1.5px solid ${digits[idx] ? 'var(--brand-500)' : 'var(--surface-border)'}`,
+                            borderRadius: 12,
+                            fontSize: 26, fontWeight: 700, textAlign: 'center',
+                            color: 'var(--text-strong)',
+                            background: digits[idx] ? 'var(--brand-50, #fff8f2)' : '#fff',
+                            outline: 'none', caretColor: 'transparent',
+                            fontFamily: 'var(--font-mono)',
+                            transition: 'border-color 0.15s, background 0.15s',
+                          }}
+                        />
+                      ))}
+                    </div>
+
                     {codeError && (
-                      <p className="field-error" style={{ marginTop: 6 }}>
+                      <p className="field-error" style={{ marginTop: 12, justifyContent: 'center' }}>
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                           <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.4" />
                           <path d="M6 3.5v3M6 8.2v.3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
@@ -287,16 +363,17 @@ export default function VocMyPage() {
                       </p>
                     )}
                   </div>
-                  <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between', alignItems: 'center' }}>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <button type="submit" className="btn btn-primary" disabled={verifying || digits.join('').length < 6}>
+                      {verifying ? '확인 중…' : '확인'}
+                    </button>
                     <button
                       type="button"
-                      onClick={() => { setStep('email'); setCodeInput(''); setCodeError(null) }}
-                      style={{ background: 'none', border: 0, padding: 0, fontSize: 12, color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline' }}
+                      onClick={() => { setStep('email'); setDigits(Array(6).fill('')); setCodeError(null) }}
+                      style={{ background: 'none', border: 0, padding: '6px 0', fontSize: 12, color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline' }}
                     >
                       이메일 다시 입력
-                    </button>
-                    <button type="submit" className="btn btn-primary btn-sm" disabled={verifying}>
-                      {verifying ? '확인 중…' : '확인'}
                     </button>
                   </div>
                 </form>
