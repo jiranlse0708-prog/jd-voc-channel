@@ -29,9 +29,9 @@ export async function POST(req: NextRequest) {
   try {
     const resend = new Resend(process.env.RESEND_API_KEY)
     await resend.emails.send({
-      from: process.env.EMAIL_FROM ?? '서버솔루션팀 VOC 채널 <onboarding@resend.dev>',
+      from: process.env.EMAIL_FROM ?? 'JD VOC 채널 <onboarding@resend.dev>',
       to:   email,
-      subject: '[VOC 채널] 이메일 인증코드',
+      subject: '[JD VOC 채널] 이메일 인증코드',
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
           <h2 style="font-size:20px;font-weight:700;color:#161a23;margin:0 0 8px;">이메일 인증코드</h2>
