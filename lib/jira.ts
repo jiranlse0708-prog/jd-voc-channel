@@ -88,6 +88,8 @@ export function buildAdfDescription(p: JiraIssueParams): AdfNode {
     para(p.dept),
     heading(2, '접수자'),
     para(p.name),
+    heading(2, '이메일'),
+    para(p.email),
     rule(),
 
     heading(1, '요구사항 구분'),

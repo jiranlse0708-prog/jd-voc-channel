@@ -155,7 +155,7 @@ function jiraInline(text: string, attachments?: CommentAttachment[], accountMap?
       )
     } else if (m[0].startsWith('[~accountid:') || m[0].startsWith('[~')) {
       const accountId  = m[4] ?? m[5] ?? ''
-      const name = accountMap?.get(accountId) ?? KNOWN_ACCOUNTS[accountId] ?? '담당자'
+      const name = accountMap?.get(accountId) ?? KNOWN_ACCOUNTS[accountId] ?? '멘션'
       parts.push(
         <span key={m.index} style={{ fontSize: 12, fontWeight: 600, color: 'var(--gray-500)' }}>@{name}</span>
       )
