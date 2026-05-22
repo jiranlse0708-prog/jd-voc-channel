@@ -29,6 +29,20 @@ export async function POST(req: NextRequest) {
   const normalizedEmail = email.toLowerCase()
   const input = code.trim().toUpperCase()
 
+  /* 로컬 개발 시 고정 코드 허용 */
+  if (process.env.SKIP_EMAIL === 'true' && input === '123456') {
+    const token = makeToken(normalizedEmail)
+    const res   = NextResponse.json({ ok: true, email: normalizedEmail })
+    res.cookies.set(COOKIE, token, {
+      httpOnly: true,
+      secure:   false,
+      sameSite: 'lax',
+      maxAge:   60 * 60 * 24 * 7,
+      path:     '/',
+    })
+    return res
+  }
+
   /* 현재 윈도우 + 이전 윈도우 모두 허용 (창이 막 바뀐 타이밍 대응) */
   const valid = makeOtp(normalizedEmail, 0) === input
              || makeOtp(normalizedEmail, -1) === input
