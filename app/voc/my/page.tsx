@@ -211,7 +211,7 @@ export default function VocMyPage() {
                     onClick={onSignOut}
                     style={{ background: 'none', border: 0, padding: 0, color: 'var(--text-muted)', cursor: 'pointer', fontSize: 12, fontFamily: 'inherit', textDecoration: 'underline' }}
                   >
-                    로그아웃
+                    변경
                   </button>
                 </div>
               )}
