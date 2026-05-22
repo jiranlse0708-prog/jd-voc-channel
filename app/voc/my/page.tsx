@@ -236,12 +236,12 @@ export default function VocMyPage() {
                 내 접수 조회
               </h1>
               {email && (
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginTop: 8, fontSize: 13, flexWrap: 'wrap' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginTop: 8, fontSize: 14, flexWrap: 'wrap' }}>
                   <span style={{ color: 'var(--text-strong)', fontWeight: 500 }}>{email}</span>
                   <button
                     type="button"
                     onClick={onSignOut}
-                    style={{ background: 'none', border: 0, padding: 0, color: 'var(--text-muted)', cursor: 'pointer', fontSize: 12, fontFamily: 'inherit', textDecoration: 'underline' }}
+                    style={{ background: 'none', border: 0, padding: 0, color: 'var(--text-muted)', cursor: 'pointer', fontSize: 13, fontFamily: 'inherit', textDecoration: 'underline' }}
                   >
                     변경
                   </button>
@@ -535,16 +535,16 @@ export default function VocMyPage() {
                       role="button"
                       tabIndex={0}
                       onKeyDown={ev => { if (ev.key === 'Enter') goDetail(item) }}
-                      style={{ cursor: 'pointer', padding: 16 }}
+                      style={{ cursor: 'pointer', padding: 20 }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                         {item.jira_issue_key && item.jira_url ? (
                           <a
                             href={item.jira_url}
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={e => e.stopPropagation()}
-                            style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--brand-600)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                            style={{ fontSize: 13, fontFamily: 'var(--font-mono)', color: 'var(--brand-600)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}
                           >
                             {item.jira_issue_key}
                             <svg width="10" height="10" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -552,22 +552,22 @@ export default function VocMyPage() {
                             </svg>
                           </a>
                         ) : <span />}
-                        <span className={`status ${status.cls}`} style={{ fontSize: 11 }}>
+                        <span className={`status ${status.cls}`} style={{ fontSize: 12 }}>
                           <span className="dot" />
                           {status.label}
                         </span>
                       </div>
-                      <p style={{ margin: '0 0 8px', fontSize: 14, fontWeight: 600, color: 'var(--text-strong)', lineHeight: 1.4 }}>
+                      <p style={{ margin: '0 0 10px', fontSize: 16, fontWeight: 600, color: 'var(--text-strong)', lineHeight: 1.4 }}>
                         {item.summary}
                       </p>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center', fontSize: 12, color: 'var(--text-muted)' }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center', fontSize: 13, color: 'var(--text-muted)' }}>
                         <span>{VOC_TYPE_LABEL[item.voc_type] ?? item.voc_type}</span>
                         <span>·</span>
                         <span>{item.product}</span>
                         {item.comments_count > 0 && (
                           <span>· 💬 {item.comments_count}</span>
                         )}
-                        <span style={{ marginLeft: 'auto', fontSize: 11 }} title={fmtDate(item.created_at)}>
+                        <span style={{ marginLeft: 'auto', fontSize: 12 }} title={fmtDate(item.created_at)}>
                           {fmtDate(item.created_at)}
                         </span>
                       </div>
