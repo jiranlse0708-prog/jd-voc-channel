@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
       }
       console.error('[JIRA issue creation failed]', jiraErr)
       return NextResponse.json(
-        { error: 'JIRA 이슈 등록에 실패했습니다. 잠시 후 다시 시도해 주세요.' },
+        { error: 'JIRA 이슈 등록에 실패했습니다. 관리자에게 문의해주세요.' },
         { status: 500 }
       )
     }
@@ -147,7 +147,7 @@ export async function POST(req: NextRequest) {
     if (dbErr) {
       console.error('[DB insert error]', dbErr)
       return NextResponse.json(
-        { error: 'DB 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' },
+        { error: 'DB 저장 중 오류가 발생했습니다. 관리자에게 문의해주세요.' },
         { status: 500 }
       )
     }
@@ -181,7 +181,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error('[POST /api/voc]', err)
     return NextResponse.json(
-      { error: '서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' },
+      { error: '서버 오류가 발생했습니다. 관리자에게 문의해주세요.' },
       { status: 500 }
     )
   }
