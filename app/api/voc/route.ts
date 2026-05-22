@@ -180,12 +180,8 @@ export async function POST(req: NextRequest) {
     )
   } catch (err) {
     console.error('[POST /api/voc]', err)
-    /* TODO 임시 디버그 — 원인 파악 후 일반 메시지로 복구할 것 */
-    const detail = err instanceof Error
-      ? `${err.name}: ${err.message}`
-      : typeof err === 'string' ? err : JSON.stringify(err)
     return NextResponse.json(
-      { error: `[DEBUG] ${detail}` },
+      { error: '서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' },
       { status: 500 }
     )
   }
