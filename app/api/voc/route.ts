@@ -50,15 +50,20 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    /* ── 3. Storage 버킷 확인 (없으면 생성) ── */
+    /* ── 3. Storage 버킷 확인 (없으면 생성) + MIME 제한 해제 ── */
     const { error: bucketErr } = await supabase.storage.createBucket(BUCKET, {
       public: false,
-      fileSizeLimit: 50 * 1024 * 1024, // 50 MB
+      fileSizeLimit: 50 * 1024 * 1024,
     })
-    // 이미 존재하는 경우는 무시
     if (bucketErr && !bucketErr.message.toLowerCase().includes('already exists')) {
       console.error('[Storage bucket error]', bucketErr)
     }
+    // 버킷 MIME 타입 제한 해제 (allowedMimeTypes: null = 모든 타입 허용)
+    await supabase.storage.updateBucket(BUCKET, {
+      public: false,
+      fileSizeLimit: 50 * 1024 * 1024,
+      allowedMimeTypes: null,  // 모든 MIME 타입 허용
+    }).catch(e => console.error('[Storage updateBucket error]', e))
 
     /* ── 4. 파일을 메모리에 읽기 (Supabase + JIRA 양쪽에 재사용) ── */
     const rawFiles = fd.getAll('files')
@@ -113,14 +118,14 @@ export async function POST(req: NextRequest) {
       // 파일명 특수문자 → 안전한 이름으로 변환 (Supabase Storage 경로 문제 방지)
       const safeName = f.name.replace(/[#?&+%]/g, '_')
       const filePath = `${storagePrefix}/${safeName}`
+      // Supabase 버킷 MIME 타입 제한 우회 — 모든 파일을 octet-stream으로 업로드
       const { error: uploadErr } = await supabase.storage
         .from(BUCKET)
-        .upload(filePath, f.buffer, { contentType: f.type || 'application/octet-stream', upsert: false })
+        .upload(filePath, f.buffer, { contentType: 'application/octet-stream', upsert: false })
 
       if (uploadErr) {
-        const errDetail = JSON.stringify(uploadErr)
-        console.error(`[Storage upload failed] ${f.name}: type=${f.type} size=${f.size} err=${errDetail}`)
-        failedUploads.push(`${f.name}[${errDetail}]`)
+        console.error(`[Storage upload failed] ${f.name}: type=${f.type} size=${f.size} err=${JSON.stringify(uploadErr)}`)
+        failedUploads.push(f.name)
         continue
       }
       attachments.push({ name: f.name, size: f.size, type: f.type, path: filePath })
