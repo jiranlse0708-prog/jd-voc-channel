@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import type { FormEvent, DragEvent, ChangeEvent, KeyboardEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Topbar from '@/components/Topbar'
@@ -127,7 +127,27 @@ export default function VocNewPage() {
 
   /* 제출 상태 */
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitError,  setSubmitError]  = useState<string | null>(null)
+
+  /* 토스트 */
+  const [toast,     setToast]     = useState<string | null>(null)
+  const [toastHide, setToastHide] = useState(false)
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const showToast = useCallback((msg: string) => {
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    setToastHide(false)
+    setToast(msg)
+    toastTimer.current = setTimeout(() => {
+      setToastHide(true)
+      setTimeout(() => setToast(null), 200)
+    }, 4000)
+  }, [])
+
+  const dismissToast = () => {
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    setToastHide(true)
+    setTimeout(() => setToast(null), 200)
+  }
 
   /* 로컬 저장 동의 (기본 ON) */
   const [remember, setRemember] = useState(true)
@@ -385,7 +405,7 @@ export default function VocNewPage() {
       const jiraParam = data.jiraKey ? `&jira=${data.jiraKey}` : ''
       router.push(`/voc/complete?id=${data.id}&token=${data.viewToken}${jiraParam}`)
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
+      showToast(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
       setIsSubmitting(false)
     }
   }
@@ -786,16 +806,6 @@ export default function VocNewPage() {
           </div>
 
           {/* ══ 하단 버튼 ══ */}
-          {submitError && (
-            <div className="field-error" style={{ justifyContent: 'center', padding: '10px 14px', background: 'var(--danger-50)', borderRadius: 'var(--r-md)', border: '1px solid var(--danger-100)' }}>
-              <svg width="14" height="14" viewBox="0 0 12 12" fill="none">
-                <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.4"/>
-                <path d="M6 3.5v3M6 8.2v.3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-              </svg>
-              {submitError}
-            </div>
-          )}
-
           <div className={`submit-bar flex flex-col sm:flex-row justify-end gap-3 pt-2 pb-4${keyboardOpen ? ' hidden' : ''}`}>
             <button
               type="button"
@@ -855,6 +865,22 @@ export default function VocNewPage() {
 
         </form>
       </main>
+
+      {/* ─── 토스트 ─── */}
+      {toast && (
+        <div className={`toast toast-error${toastHide ? ' hiding' : ''}`} role="alert">
+          <svg className="toast-icon" width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <circle cx="9" cy="9" r="8" stroke="currentColor" strokeWidth="1.6"/>
+            <path d="M9 5.5v4M9 11.5v.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+          </svg>
+          <span className="toast-msg">{toast}</span>
+          <button className="toast-close" onClick={dismissToast} aria-label="닫기">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   )
 }
