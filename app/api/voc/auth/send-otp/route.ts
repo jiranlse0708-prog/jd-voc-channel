@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHmac } from 'crypto'
-import nodemailer from 'nodemailer'
+import { Resend } from 'resend'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 /** 현재 10분 윈도우 기준 6자리 OTP 생성 */
 function makeOtp(email: string): string {
-  const window = Math.floor(Date.now() / 1000 / 600) // 10분 단위
+  const window = Math.floor(Date.now() / 1000 / 600)
   const hmac = createHmac('sha256', process.env.NEXTAUTH_SECRET ?? 'fallback')
     .update(`${email.toLowerCase()}:${window}`)
     .digest('hex')
@@ -27,16 +27,9 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_APP_PASSWORD,
-      },
-    })
-
-    await transporter.sendMail({
-      from: process.env.EMAIL_FROM ?? `VOC 채널 <${process.env.GMAIL_USER}>`,
+    const resend = new Resend(process.env.RESEND_API_KEY)
+    await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? '서버솔루션팀 VOC 채널 <onboarding@resend.dev>',
       to:   email,
       subject: '[VOC 채널] 이메일 인증코드',
       html: `

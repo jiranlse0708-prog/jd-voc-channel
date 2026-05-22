@@ -1,23 +1,16 @@
-import nodemailer from 'nodemailer'
+import { Resend } from 'resend'
 
-function getTransporter() {
-  return nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.GMAIL_USER,
-      pass: process.env.GMAIL_APP_PASSWORD,
-    },
-  })
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY)
 }
+const FROM = () => process.env.EMAIL_FROM ?? '서버솔루션팀 VOC 채널 <onboarding@resend.dev>'
+const SITE = () => (process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 
 function skipEmail(to: string, subject: string) {
   if (process.env.SKIP_EMAIL !== 'true') return false
   console.log(`[mail] SKIP_EMAIL=true → subject: "${subject}" (to: ${to})`)
   return true
 }
-
-const FROM = () => process.env.EMAIL_FROM ?? `서버솔루션팀 VOC 채널 <${process.env.GMAIL_USER}>`
-const SITE = () => (process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 
 /* ─── 공통 HTML 래퍼 ─── */
 function wrap(title: string, body: string) {
@@ -60,6 +53,8 @@ export async function sendSubmissionConfirm(params: {
   product: string
   vocType: string
 }) {
+  const subject = `[VOC 접수] #${params.vocId} ${params.summary}`
+  if (skipEmail(params.to, subject)) return
   const viewUrl = `${SITE()}/voc/${params.vocId}?token=${params.token}`
   const body = `
     <h2 style="margin:0 0 4px;font-size:20px;color:#111827;">VOC가 접수됐습니다</h2>
@@ -73,9 +68,7 @@ export async function sendSubmissionConfirm(params: {
     <p style="margin:16px 0 0;font-size:13px;color:#6b7280;">아래 링크를 저장해두시면 언제든지 접수 상태를 확인할 수 있습니다.</p>
     ${btn(viewUrl, '접수 내용 조회하기')}
   `
-  const subject = `[VOC 접수] #${params.vocId} ${params.summary}`
-  if (skipEmail(params.to, subject)) return
-  return getTransporter().sendMail({ from: FROM(), to: params.to, subject, html: wrap('VOC 접수 확인', body) })
+  return getResend().emails.send({ from: FROM(), to: params.to, subject, html: wrap('VOC 접수 확인', body) })
 }
 
 /* ─── 2. 상태 변경 알림 ─── */
@@ -88,6 +81,8 @@ export async function sendStatusChanged(params: {
   newStatus: string
   changedBy: string
 }) {
+  const subject = `[VOC 상태 변경] #${params.vocId} → ${params.newStatus}`
+  if (skipEmail(params.to, subject)) return
   const viewUrl = `${SITE()}/voc/${params.vocId}?token=${params.token}`
   const body = `
     <h2 style="margin:0 0 4px;font-size:20px;color:#111827;">VOC 처리 상태가 변경됐습니다</h2>
@@ -100,9 +95,7 @@ export async function sendStatusChanged(params: {
     <p style="margin:12px 0 0;font-size:13px;color:#6b7280;">담당자: ${params.changedBy}</p>
     ${btn(viewUrl, '상세 내용 확인하기')}
   `
-  const subject = `[VOC 상태 변경] #${params.vocId} → ${params.newStatus}`
-  if (skipEmail(params.to, subject)) return
-  return getTransporter().sendMail({ from: FROM(), to: params.to, subject, html: wrap('VOC 상태 변경 알림', body) })
+  return getResend().emails.send({ from: FROM(), to: params.to, subject, html: wrap('VOC 상태 변경 알림', body) })
 }
 
 /* ─── 3. 댓글 알림 ─── */
@@ -114,6 +107,8 @@ export async function sendCommentAdded(params: {
   author:      string
   commentText: string
 }) {
+  const subject = `[VOC 댓글] #${params.vocId} ${params.summary}`
+  if (skipEmail(params.to, subject)) return
   const viewUrl = `${SITE()}/voc/${params.vocId}?token=${params.token}`
   const body = `
     <h2 style="margin:0 0 4px;font-size:20px;color:#111827;">담당자가 댓글을 남겼습니다</h2>
@@ -124,9 +119,7 @@ export async function sendCommentAdded(params: {
     </div>
     ${btn(viewUrl, '전체 내용 확인하기')}
   `
-  const subject = `[VOC 댓글] #${params.vocId} ${params.summary}`
-  if (skipEmail(params.to, subject)) return
-  return getTransporter().sendMail({ from: FROM(), to: params.to, subject, html: wrap('VOC 댓글 알림', body) })
+  return getResend().emails.send({ from: FROM(), to: params.to, subject, html: wrap('VOC 댓글 알림', body) })
 }
 
 /* ─── 4. 조회 링크 재발송 ─── */
@@ -134,6 +127,8 @@ export async function sendVocLookupLinks(params: {
   to:    string
   items: { id: number; token: string; summary: string; status: string; createdAt: string }[]
 }) {
+  const subject = `[VOC] 접수 조회 링크 (${params.items.length}건)`
+  if (skipEmail(params.to, subject)) return
   const rows = params.items.map(it => {
     const url = `${SITE()}/voc/${it.id}?token=${it.token}`
     const date = new Date(it.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Seoul' })
@@ -144,16 +139,11 @@ export async function sendVocLookupLinks(params: {
       </td>
     </tr>`
   }).join('')
-
   const body = `
     <h2 style="margin:0 0 4px;font-size:20px;color:#111827;">접수하신 VOC 조회 링크입니다</h2>
     <p style="margin:0 0 20px;font-size:14px;color:#6b7280;">총 ${params.items.length}건의 접수 내역을 확인하실 수 있습니다.</p>
-    <table cellpadding="0" cellspacing="0" style="width:100%;border-top:1px solid #e5e7eb;">
-      ${rows}
-    </table>
+    <table cellpadding="0" cellspacing="0" style="width:100%;border-top:1px solid #e5e7eb;">${rows}</table>
     <p style="margin:20px 0 0;font-size:12px;color:#6b7280;">본인 외 타인에게 링크가 공유되지 않도록 주의해 주세요.</p>
   `
-  const subject = `[VOC] 접수 조회 링크 (${params.items.length}건)`
-  if (skipEmail(params.to, subject)) return
-  return getTransporter().sendMail({ from: FROM(), to: params.to, subject, html: wrap('VOC 조회 링크', body) })
+  return getResend().emails.send({ from: FROM(), to: params.to, subject, html: wrap('VOC 조회 링크', body) })
 }
