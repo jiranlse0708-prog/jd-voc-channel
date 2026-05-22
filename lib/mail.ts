@@ -10,6 +10,12 @@ function getTransporter() {
   })
 }
 
+function skipEmail(to: string, subject: string) {
+  if (process.env.SKIP_EMAIL !== 'true') return false
+  console.log(`[mail] SKIP_EMAIL=true → subject: "${subject}" (to: ${to})`)
+  return true
+}
+
 const FROM = () => process.env.EMAIL_FROM ?? `서버솔루션팀 VOC 채널 <${process.env.GMAIL_USER}>`
 const SITE = () => (process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 
@@ -67,11 +73,9 @@ export async function sendSubmissionConfirm(params: {
     <p style="margin:16px 0 0;font-size:13px;color:#6b7280;">아래 링크를 저장해두시면 언제든지 접수 상태를 확인할 수 있습니다.</p>
     ${btn(viewUrl, '접수 내용 조회하기')}
   `
-  return getTransporter().sendMail({
-    from: FROM(), to: params.to,
-    subject: `[VOC 접수] #${params.vocId} ${params.summary}`,
-    html: wrap('VOC 접수 확인', body),
-  })
+  const subject = `[VOC 접수] #${params.vocId} ${params.summary}`
+  if (skipEmail(params.to, subject)) return
+  return getTransporter().sendMail({ from: FROM(), to: params.to, subject, html: wrap('VOC 접수 확인', body) })
 }
 
 /* ─── 2. 상태 변경 알림 ─── */
@@ -96,11 +100,9 @@ export async function sendStatusChanged(params: {
     <p style="margin:12px 0 0;font-size:13px;color:#6b7280;">담당자: ${params.changedBy}</p>
     ${btn(viewUrl, '상세 내용 확인하기')}
   `
-  return getTransporter().sendMail({
-    from: FROM(), to: params.to,
-    subject: `[VOC 상태 변경] #${params.vocId} → ${params.newStatus}`,
-    html: wrap('VOC 상태 변경 알림', body),
-  })
+  const subject = `[VOC 상태 변경] #${params.vocId} → ${params.newStatus}`
+  if (skipEmail(params.to, subject)) return
+  return getTransporter().sendMail({ from: FROM(), to: params.to, subject, html: wrap('VOC 상태 변경 알림', body) })
 }
 
 /* ─── 3. 댓글 알림 ─── */
@@ -122,11 +124,9 @@ export async function sendCommentAdded(params: {
     </div>
     ${btn(viewUrl, '전체 내용 확인하기')}
   `
-  return getTransporter().sendMail({
-    from: FROM(), to: params.to,
-    subject: `[VOC 댓글] #${params.vocId} ${params.summary}`,
-    html: wrap('VOC 댓글 알림', body),
-  })
+  const subject = `[VOC 댓글] #${params.vocId} ${params.summary}`
+  if (skipEmail(params.to, subject)) return
+  return getTransporter().sendMail({ from: FROM(), to: params.to, subject, html: wrap('VOC 댓글 알림', body) })
 }
 
 /* ─── 4. 조회 링크 재발송 ─── */
@@ -153,9 +153,7 @@ export async function sendVocLookupLinks(params: {
     </table>
     <p style="margin:20px 0 0;font-size:12px;color:#6b7280;">본인 외 타인에게 링크가 공유되지 않도록 주의해 주세요.</p>
   `
-  return getTransporter().sendMail({
-    from: FROM(), to: params.to,
-    subject: `[VOC] 접수 조회 링크 (${params.items.length}건)`,
-    html: wrap('VOC 조회 링크', body),
-  })
+  const subject = `[VOC] 접수 조회 링크 (${params.items.length}건)`
+  if (skipEmail(params.to, subject)) return
+  return getTransporter().sendMail({ from: FROM(), to: params.to, subject, html: wrap('VOC 조회 링크', body) })
 }

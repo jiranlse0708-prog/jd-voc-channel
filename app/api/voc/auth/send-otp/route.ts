@@ -21,6 +21,11 @@ export async function POST(req: NextRequest) {
 
   const code = makeOtp(email)
 
+  if (process.env.SKIP_EMAIL === 'true') {
+    console.log(`[send-otp] SKIP_EMAIL=true → OTP: ${code} (to: ${email})`)
+    return NextResponse.json({ ok: true })
+  }
+
   try {
     const transporter = nodemailer.createTransport({
       service: 'gmail',
