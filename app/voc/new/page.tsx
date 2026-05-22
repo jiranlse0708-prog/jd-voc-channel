@@ -376,34 +376,80 @@ export default function VocNewPage() {
     setIsSubmitting(true)
 
     try {
-      const fd = new FormData()
-      fd.append('dept',       dept)
-      fd.append('name',       name)
-      fd.append('email',      email.trim())
-      fd.append('product',    product)
-      fd.append('vocType',    vocType)
-      fd.append('summary',    summary)
-      fd.append('customer',   customer)
-      fd.append('priority',   priority)
-      fd.append('purpose',    purpose)
-      fd.append('screenPath', screenPaths.map(s => s.trim()).filter(Boolean).join('\n'))
-      fd.append('detail',     detail)
-      fd.append('dueDate',    dueDate)
-      files.forEach(f => fd.append('files', f))
+      /* ── 1단계: 파일 업로드 URL 발급 → Supabase 직접 업로드 ── */
+      interface UploadEntry { name: string; size: number; type: string; path: string }
+      const uploadedAttachments: UploadEntry[] = []
+      const failedUploads: string[] = []
 
-      const res  = await fetch('/api/voc', { method: 'POST', body: fd })
-      const data = await res.json()
+      if (files.length > 0) {
+        const prepRes  = await fetch('/api/voc/prepare-uploads', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ files: files.map(f => ({ name: f.name, size: f.size, type: f.type })) }),
+        })
+        if (!prepRes.ok) throw new Error('파일 업로드 준비에 실패했습니다.')
+        const { uploads } = await prepRes.json() as {
+          uploads: { name: string; size: number; type: string; path: string; signedUrl: string }[]
+        }
+
+        await Promise.all(
+          uploads.map(async (u) => {
+            const file = files.find(f => f.name === u.name)
+            if (!file) return
+            try {
+              const putRes = await fetch(u.signedUrl, {
+                method:  'PUT',
+                body:    file,
+                headers: { 'Content-Type': file.type || 'application/octet-stream' },
+              })
+              if (!putRes.ok) throw new Error(`status ${putRes.status}`)
+              uploadedAttachments.push({ name: u.name, size: u.size, type: u.type, path: u.path })
+            } catch (e) {
+              console.error(`[upload failed] ${u.name}`, e)
+              failedUploads.push(u.name)
+            }
+          })
+        )
+      }
+
+      /* ── 2단계: 폼 데이터 JSON으로 제출 ── */
+      const res  = await fetch('/api/voc', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dept,
+          name,
+          email:       email.trim(),
+          product,
+          vocType,
+          summary,
+          customer,
+          priority,
+          purpose,
+          screenPath:  screenPaths.map(s => s.trim()).filter(Boolean).join('\n'),
+          detail,
+          dueDate:     dueDate || null,
+          attachments: uploadedAttachments,
+        }),
+      })
+
+      let data: Record<string, unknown>
+      try {
+        data = await res.json()
+      } catch {
+        throw new Error('서버 오류가 발생했습니다. 관리자에게 문의해주세요.')
+      }
 
       if (!res.ok) {
-        throw new Error(data.error ?? '접수 중 오류가 발생했습니다.')
+        throw new Error((data.error as string) ?? '접수 중 오류가 발생했습니다.')
       }
 
       /* 접수 성공 — 드래프트 삭제 */
       localStorage.removeItem(LS.draft)
 
       const jiraParam   = data.jiraKey ? `&jira=${data.jiraKey}` : ''
-      const failedParam = data.failedUploads?.length
-        ? `&failedUploads=${encodeURIComponent(data.failedUploads.join(','))}`
+      const failedParam = failedUploads.length
+        ? `&failedUploads=${encodeURIComponent(failedUploads.join(','))}`
         : ''
       router.push(`/voc/complete?id=${data.id}&token=${data.viewToken}${jiraParam}${failedParam}`)
     } catch (err) {
