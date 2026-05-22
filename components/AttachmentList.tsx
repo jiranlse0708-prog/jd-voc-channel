@@ -17,9 +17,17 @@ function fmtSize(b: number) {
   return `${(b / 1024 / 1024).toFixed(1)} MB`
 }
 
+const IMAGE_EXTS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'avif', 'heic', 'heif'])
+
+function isImageFile(a: SignedAttachment) {
+  if (a.type.startsWith('image/')) return true
+  const ext = a.name.split('.').pop()?.toLowerCase() ?? ''
+  return IMAGE_EXTS.has(ext)
+}
+
 export default function AttachmentList({ items }: { items: SignedAttachment[] }) {
-  const images    = items.filter(a => a.type.startsWith('image/'))
-  const nonImages = items.filter(a => !a.type.startsWith('image/'))
+  const images    = items.filter(isImageFile)
+  const nonImages = items.filter(a => !isImageFile(a))
 
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null)
   const current = lightboxIdx !== null ? images[lightboxIdx] : null

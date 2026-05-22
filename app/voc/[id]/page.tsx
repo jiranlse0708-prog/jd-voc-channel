@@ -311,9 +311,11 @@ export default async function VocViewPage({ params, searchParams }: Props) {
   )
   const jiraHost = process.env.JIRA_HOST?.replace(/\/$/, '')
 
-  /* JIRA 첨부파일 맵 — 댓글에 [^파일명] 있을 때 직접 API 조회 */
+  /* JIRA 첨부파일 맵 — 댓글에 [^파일명] 또는 !파일명! 있을 때 직접 API 조회 */
   const jiraAttachMap = new Map<string, string>()
-  const hasAttachRef  = comments.some(c => /\[\^[^\]]+\]/.test(c.body))
+  const hasAttachRef  = comments.some(c =>
+    /\[\^[^\]]+\]/.test(c.body) || /![^!\s][^!|]*(?:\|[^!]*)?!/.test(c.body)
+  )
   if (hasAttachRef && row.jira_issue_key && jiraHost) {
     try {
       const cred = Buffer.from(
