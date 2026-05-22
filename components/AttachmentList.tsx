@@ -50,16 +50,20 @@ export default function AttachmentList({ items }: { items: SignedAttachment[] })
 
   return (
     <>
-      {/* 이미지 — 220px 카드 그리드 */}
+      {/* 이미지 — 1줄 가로 스크롤 */}
       {images.length > 0 && (
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, 140px)',
+          display: 'flex',
+          flexDirection: 'row',
+          overflowX: 'auto',
           gap: 12,
           marginBottom: nonImages.length > 0 ? 12 : 0,
+          paddingBottom: 4,
         }}>
           {images.map((a, i) => (
             <div key={`img-${i}`} style={{
+              flexShrink: 0,
+              width: 140,
               border: '1px solid var(--surface-border)',
               borderRadius: 'var(--r-md)',
               background: 'var(--surface-card)',
@@ -120,12 +124,13 @@ export default function AttachmentList({ items }: { items: SignedAttachment[] })
         </div>
       )}
 
-      {/* 비이미지 — 가로 행 형태 유지 */}
+      {/* 비이미지 — 1줄 가로 스크롤 */}
       {nonImages.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ display: 'flex', flexDirection: 'row', overflowX: 'auto', gap: 8, paddingBottom: 4 }}>
           {nonImages.map((a, i) => (
             <div key={`file-${i}`} style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+              flexShrink: 0, minWidth: 200, maxWidth: 260,
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
               padding: '10px 12px',
               background: 'var(--surface-canvas)',
               border: '1px solid var(--surface-border)',
