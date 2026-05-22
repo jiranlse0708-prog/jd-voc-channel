@@ -303,8 +303,8 @@ export default function VocMyPage() {
                     </p>
 
                     {/* OTP 박스 */}
-                    <div style={{ display: 'flex', gap: 8, justifyContent: 'center', alignItems: 'center' }}>
-                      {[0, 1, 2].map(idx => (
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      {[0, 1, 2, 3, 4, 5].map(idx => (
                         <input
                           key={idx}
                           ref={el => { digitRefs.current[idx] = el }}
@@ -316,34 +316,10 @@ export default function VocMyPage() {
                           onKeyDown={e => onDigitKeyDown(idx, e)}
                           onPaste={onDigitPaste}
                           style={{
-                            width: 52, height: 64,
+                            flex: '1 1 0', minWidth: 0, maxWidth: 48, height: 48,
                             border: `1.5px solid ${digits[idx] ? 'var(--brand-500)' : 'var(--surface-border)'}`,
-                            borderRadius: 12,
-                            fontSize: 26, fontWeight: 700, textAlign: 'center',
-                            color: 'var(--text-strong)',
-                            background: digits[idx] ? 'var(--brand-50, #fff8f2)' : '#fff',
-                            outline: 'none', caretColor: 'transparent',
-                            fontFamily: 'var(--font-mono)',
-                            transition: 'border-color 0.15s, background 0.15s',
-                          }}
-                        />
-                      ))}
-                      {[3, 4, 5].map(idx => (
-                        <input
-                          key={idx}
-                          ref={el => { digitRefs.current[idx] = el }}
-                          type="text"
-                          inputMode="text"
-                          maxLength={1}
-                          value={digits[idx]}
-                          onChange={e => onDigitInput(idx, e.target.value)}
-                          onKeyDown={e => onDigitKeyDown(idx, e)}
-                          onPaste={onDigitPaste}
-                          style={{
-                            width: 52, height: 64,
-                            border: `1.5px solid ${digits[idx] ? 'var(--brand-500)' : 'var(--surface-border)'}`,
-                            borderRadius: 12,
-                            fontSize: 26, fontWeight: 700, textAlign: 'center',
+                            borderRadius: 10,
+                            fontSize: 22, fontWeight: 700, textAlign: 'center',
                             color: 'var(--text-strong)',
                             background: digits[idx] ? 'var(--brand-50, #fff8f2)' : '#fff',
                             outline: 'none', caretColor: 'transparent',
