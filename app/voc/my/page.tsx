@@ -262,21 +262,22 @@ export default function VocMyPage() {
 
               {/* STEP 1: 이메일 입력 */}
               {step === 'email' && (
-                <form onSubmit={onSendOtp} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <form onSubmit={onSendOtp} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                   <div>
-                    <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>
-                      접수 시 입력한 이메일을 입력하면 인증코드를 발송해드려요.
+                    <h2 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700, color: 'var(--text-strong)', textAlign: 'center' }}>이메일 인증</h2>
+                    <p style={{ margin: '0 0 20px', fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.7, textAlign: 'center' }}>
+                      접수 시 입력한 이메일을 입력하면<br/>인증코드를 발송해드려요.
                     </p>
-                    <label className="field-label">이메일</label>
                     <input
                       className={`input${emailError ? ' invalid' : ''}`}
                       type="email" inputMode="email" autoComplete="email" autoFocus
                       value={emailInput}
                       onChange={ev => { setEmailInput(ev.target.value); setEmailError(null) }}
                       placeholder="예: hong@jiran.com"
+                      style={{ textAlign: 'center' }}
                     />
                     {emailError && (
-                      <p className="field-error" style={{ marginTop: 6 }}>
+                      <p className="field-error" style={{ marginTop: 6, justifyContent: 'center' }}>
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                           <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.4" />
                           <path d="M6 3.5v3M6 8.2v.3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
@@ -285,7 +286,7 @@ export default function VocMyPage() {
                       </p>
                     )}
                   </div>
-                  <button type="submit" className="btn btn-primary btn-sm" disabled={sending} style={{ alignSelf: 'flex-end' }}>
+                  <button type="submit" className="btn btn-primary" disabled={sending}>
                     {sending ? '전송 중…' : '인증코드 전송'}
                   </button>
                 </form>
@@ -295,6 +296,7 @@ export default function VocMyPage() {
               {step === 'code' && (
                 <form onSubmit={onVerifyOtp} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                   <div style={{ textAlign: 'center' }}>
+                    <h2 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700, color: 'var(--text-strong)' }}>이메일 인증</h2>
                     <p style={{ margin: '0 0 24px', fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.7 }}>
                       <strong style={{ color: 'var(--text-strong)' }}>{emailInput}</strong>으로<br/>
                       인증코드를 발송했어요. (10분 유효)
