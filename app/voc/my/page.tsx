@@ -394,14 +394,35 @@ export default function VocMyPage() {
             </div>
           )}
 
-          {/* ─── 로딩 ─── */}
+          {/* ─── 로딩 (Skeleton) ─── */}
           {loading && (
-            <div className="card" style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--text-muted)' }}>
-              <svg width="20" height="20" viewBox="0 0 16 16" fill="none" style={{ animation: 'spin 1s linear infinite', marginBottom: 8 }}>
-                <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.8" strokeOpacity="0.3" />
-                <path d="M8 2a6 6 0 016 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-              </svg>
-              <p style={{ margin: 0, fontSize: 13 }}>접수 내역을 불러오는 중…</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {[0, 1, 2, 3].map(i => (
+                <div
+                  key={i}
+                  className="card"
+                  style={{
+                    padding: 20,
+                    opacity: 1 - i * 0.18,
+                    display: 'flex', flexDirection: 'column', gap: 14,
+                  }}
+                >
+                  {/* 상단 행: JIRA key + 상태 */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div className="skeleton" style={{ width: 72, height: 16 }} />
+                    <div className="skeleton" style={{ width: 52, height: 22, borderRadius: 20 }} />
+                  </div>
+                  {/* 제목 */}
+                  <div className="skeleton" style={{ width: `${72 - i * 6}%`, height: 18 }} />
+                  {/* 메타 */}
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <div className="skeleton" style={{ width: 36, height: 13 }} />
+                    <div className="skeleton" style={{ width: 8, height: 13, borderRadius: 4 }} />
+                    <div className="skeleton" style={{ width: 72, height: 13 }} />
+                    <div className="skeleton" style={{ width: 70, height: 13, marginLeft: 'auto' }} />
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
