@@ -1,9 +1,16 @@
-import { Resend } from 'resend'
+import nodemailer from 'nodemailer'
 
-function getResend() {
-  return new Resend(process.env.RESEND_API_KEY)
+function getTransporter() {
+  return nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_APP_PASSWORD,
+    },
+  })
 }
-const FROM = () => process.env.EMAIL_FROM ?? '서버솔루션팀 VOC 채널 <noreply@example.com>'
+
+const FROM = () => process.env.EMAIL_FROM ?? `서버솔루션팀 VOC 채널 <${process.env.GMAIL_USER}>`
 const SITE = () => (process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 
 /* ─── 공통 HTML 래퍼 ─── */
@@ -60,7 +67,7 @@ export async function sendSubmissionConfirm(params: {
     <p style="margin:16px 0 0;font-size:13px;color:#6b7280;">아래 링크를 저장해두시면 언제든지 접수 상태를 확인할 수 있습니다.</p>
     ${btn(viewUrl, '접수 내용 조회하기')}
   `
-  return getResend().emails.send({
+  return getTransporter().sendMail({
     from: FROM(), to: params.to,
     subject: `[VOC 접수] #${params.vocId} ${params.summary}`,
     html: wrap('VOC 접수 확인', body),
@@ -89,10 +96,36 @@ export async function sendStatusChanged(params: {
     <p style="margin:12px 0 0;font-size:13px;color:#6b7280;">담당자: ${params.changedBy}</p>
     ${btn(viewUrl, '상세 내용 확인하기')}
   `
-  return getResend().emails.send({
+  return getTransporter().sendMail({
     from: FROM(), to: params.to,
     subject: `[VOC 상태 변경] #${params.vocId} → ${params.newStatus}`,
     html: wrap('VOC 상태 변경 알림', body),
+  })
+}
+
+/* ─── 3. 댓글 알림 ─── */
+export async function sendCommentAdded(params: {
+  to:          string
+  vocId:       number
+  token:       string
+  summary:     string
+  author:      string
+  commentText: string
+}) {
+  const viewUrl = `${SITE()}/voc/${params.vocId}?token=${params.token}`
+  const body = `
+    <h2 style="margin:0 0 4px;font-size:20px;color:#111827;">담당자가 댓글을 남겼습니다</h2>
+    <p style="margin:0 0 20px;font-size:14px;color:#6b7280;">#${params.vocId} ${params.summary}</p>
+    <div style="padding:16px;background:#f9fafb;border-radius:8px;border-left:3px solid #F78121;">
+      <p style="margin:0 0 6px;font-size:12px;font-weight:600;color:#F78121;">${params.author}</p>
+      <p style="margin:0;font-size:14px;color:#111827;line-height:1.6;white-space:pre-wrap;">${params.commentText}</p>
+    </div>
+    ${btn(viewUrl, '전체 내용 확인하기')}
+  `
+  return getTransporter().sendMail({
+    from: FROM(), to: params.to,
+    subject: `[VOC 댓글] #${params.vocId} ${params.summary}`,
+    html: wrap('VOC 댓글 알림', body),
   })
 }
 
@@ -120,35 +153,9 @@ export async function sendVocLookupLinks(params: {
     </table>
     <p style="margin:20px 0 0;font-size:12px;color:#6b7280;">본인 외 타인에게 링크가 공유되지 않도록 주의해 주세요.</p>
   `
-  return getResend().emails.send({
+  return getTransporter().sendMail({
     from: FROM(), to: params.to,
     subject: `[VOC] 접수 조회 링크 (${params.items.length}건)`,
     html: wrap('VOC 조회 링크', body),
-  })
-}
-
-/* ─── 3. 댓글 알림 ─── */
-export async function sendCommentAdded(params: {
-  to:          string
-  vocId:       number
-  token:       string
-  summary:     string
-  author:      string
-  commentText: string
-}) {
-  const viewUrl = `${SITE()}/voc/${params.vocId}?token=${params.token}`
-  const body = `
-    <h2 style="margin:0 0 4px;font-size:20px;color:#111827;">담당자가 댓글을 남겼습니다</h2>
-    <p style="margin:0 0 20px;font-size:14px;color:#6b7280;">#${params.vocId} ${params.summary}</p>
-    <div style="padding:16px;background:#f9fafb;border-radius:8px;border-left:3px solid #F78121;">
-      <p style="margin:0 0 6px;font-size:12px;font-weight:600;color:#F78121;">${params.author}</p>
-      <p style="margin:0;font-size:14px;color:#111827;line-height:1.6;white-space:pre-wrap;">${params.commentText}</p>
-    </div>
-    ${btn(viewUrl, '전체 내용 확인하기')}
-  `
-  return getResend().emails.send({
-    from: FROM(), to: params.to,
-    subject: `[VOC 댓글] #${params.vocId} ${params.summary}`,
-    html: wrap('VOC 댓글 알림', body),
   })
 }

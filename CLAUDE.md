@@ -20,7 +20,7 @@ npm run lint     # ESLint
 - **Next.js 16** App Router + Turbopack, TypeScript, Tailwind v4 (CSS-first, `globals.css`에 토큰 정의)
 - **Supabase** — DB(`voc_submission` 테이블) + Storage(`voc-attachments` 버킷)
 - **JIRA REST API v3** — 이슈 생성, 첨부파일 업로드, ADF description
-- **Resend** — 이메일 발송 (현재 도메인 미인증으로 UI에서 미노출, 코드는 보존)
+- **Nodemailer (Gmail SMTP)** — 이메일 발송 (OTP, 접수 확인, 상태 변경 알림, 댓글 알림)
 
 ### 주요 데이터 흐름
 
@@ -64,11 +64,12 @@ JIRA_EMAIL
 JIRA_API_TOKEN
 JIRA_PROJECT_KEY
 JIRA_WEBHOOK_SECRET
-RESEND_API_KEY      # 현재 미사용
+GMAIL_USER          # Gmail 주소 (발신용)
+GMAIL_APP_PASSWORD  # Gmail 앱 비밀번호 (16자리)
 ```
 
 ### 설계 메모
 - `voc_submission` 테이블의 `view_token`이 조회 페이지 접근 권한 역할 — URL로 공유 가능
 - JIRA 담당자·보고자는 `PRODUCT_ASSIGNEE_ID`로 제품별 설정 (ServerFilter→정석범, IDFilter→김정태)
 - 모바일 미디어쿼리 기준: `max-width: 640px`; 터치 기기 감지는 `navigator.maxTouchPoints > 0`
-- 이메일 기능은 Resend 도메인 인증 후 재활성화 예정 — UI에서는 완전 미노출
+- 이메일 기능은 Gmail SMTP 사용 — `GMAIL_USER` + `GMAIL_APP_PASSWORD` 환경변수 필요
