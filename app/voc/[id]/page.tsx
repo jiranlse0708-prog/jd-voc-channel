@@ -399,7 +399,7 @@ export default async function VocViewPage({ params, searchParams }: Props) {
           {/* ─── 참고 화면 ─── */}
           {signedAttachments.length > 0 && (
             <div className="card detail-card" style={{ marginBottom: 16 }}>
-              <SectionLabel>참고 화면</SectionLabel>
+              <SectionLabel>첨부 파일</SectionLabel>
               <AttachmentList items={signedAttachments} />
             </div>
           )}
