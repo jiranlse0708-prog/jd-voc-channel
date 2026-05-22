@@ -534,3 +534,22 @@ body {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
+
+/* ================================================================
+   상세 페이지 필드 / 섹션 — 모바일 반응형
+   ================================================================ */
+.detail-section-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--text-subtle); margin-bottom: 12px;
+}
+.detail-field-label { font-size: 11px; color: var(--text-subtle); font-weight: 600; }
+.detail-field-value { font-size: 14px; color: var(--text-strong); line-height: 1.5; }
+
+@media (max-width: 640px) {
+  .detail-section-label { font-size: 12px; margin-bottom: 16px; }
+  .detail-field-label   { font-size: 13px; }
+  .detail-field-value   { font-size: 16px; }
+  .detail-field-grid    { gap: 20px !important; }
+  .detail-text-section  { gap: 20px !important; }
+  .card.detail-card     { padding: 20px; }
+}

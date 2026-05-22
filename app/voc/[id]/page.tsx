@@ -225,19 +225,15 @@ function fmtDate(iso: string) {
 
 /* ─── 섹션 헤더 ─── */
 function SectionLabel({ children }: { children: string }) {
-  return (
-    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-subtle)', marginBottom: 12 }}>
-      {children}
-    </div>
-  )
+  return <div className="detail-section-label">{children}</div>
 }
 
 /* ─── 필드 행 ─── */
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <span style={{ fontSize: 11, color: 'var(--text-subtle)', fontWeight: 600 }}>{label}</span>
-      <span style={{ fontSize: 14, color: 'var(--text-strong)', lineHeight: 1.5 }}>{children}</span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <span className="detail-field-label">{label}</span>
+      <span className="detail-field-value">{children}</span>
     </div>
   )
 }
@@ -337,9 +333,9 @@ export default async function VocViewPage({ params, searchParams }: Props) {
           <WorkflowStepper status={row.current_status} />
 
           {/* ─── 접수 정보 ─── */}
-          <div className="card" style={{ marginBottom: 16 }}>
+          <div className="card detail-card" style={{ marginBottom: 16 }}>
             <SectionLabel>접수 정보</SectionLabel>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(160px,1fr))', gap: 16 }}>
+            <div className="detail-field-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(160px,1fr))', gap: 16 }}>
               <Field label="접수자">{row.requester_name}</Field>
               <Field label="부서">{row.requester_dept}</Field>
               <Field label="상태">
@@ -368,16 +364,16 @@ export default async function VocViewPage({ params, searchParams }: Props) {
           </div>
 
           {/* ─── 요청 정보 ─── */}
-          <div className="card" style={{ marginBottom: 16 }}>
+          <div className="card detail-card" style={{ marginBottom: 16 }}>
             <SectionLabel>요청 정보</SectionLabel>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(160px,1fr))', gap: 16, marginBottom: 16 }}>
+            <div className="detail-field-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(160px,1fr))', gap: 16, marginBottom: 16 }}>
               <Field label="제품">{row.product}</Field>
               <Field label="VOC 유형">{VOC_TYPE_LABEL[row.voc_type] ?? row.voc_type}</Field>
               {row.customer && <Field label="요청 고객사">{row.customer}</Field>}
               <Field label="우선순위">{PRIORITY_LABEL[row.priority] ?? row.priority}</Field>
               {row.due_date && <Field label="요청 기한">{row.due_date}</Field>}
             </div>
-            <div style={{ borderTop: '1px solid var(--surface-border)', paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div className="detail-text-section" style={{ borderTop: '1px solid var(--surface-border)', paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
               <Field label="요약">{row.summary}</Field>
               <Field label="목적/배경">
                 <span style={{ whiteSpace: 'pre-wrap' }}>{row.purpose}</span>
@@ -393,7 +389,7 @@ export default async function VocViewPage({ params, searchParams }: Props) {
 
           {/* ─── 참고 화면 ─── */}
           {signedAttachments.length > 0 && (
-            <div className="card" style={{ marginBottom: 16 }}>
+            <div className="card detail-card" style={{ marginBottom: 16 }}>
               <SectionLabel>참고 화면</SectionLabel>
               <AttachmentList items={signedAttachments} />
             </div>
@@ -401,7 +397,7 @@ export default async function VocViewPage({ params, searchParams }: Props) {
 
           {/* ─── 담당자 코멘트 ─── */}
           {comments.length > 0 && (
-            <div className="card">
+            <div className="card detail-card">
               {/* 헤더 */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
