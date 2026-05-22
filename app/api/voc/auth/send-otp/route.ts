@@ -64,8 +64,7 @@ export async function POST(req: NextRequest) {
     const passInfo = pass ? `${pass.length}자리 / 공백${pass.includes(' ') ? '있음' : '없음'}` : '(미설정)'
     console.error('[send-otp] email error', e)
     return NextResponse.json({
-      error: `[DEBUG] ${msg}`,
-      debug: { user, passInfo },
+      error: `[DEBUG] user=${user} / pass=${passInfo} / ${msg}`,
     }, { status: 500 })
   }
 
