@@ -223,6 +223,15 @@ function fmtDate(iso: string) {
   })
 }
 
+function fmtDateKo(dateStr: string) {
+  const d = new Date(dateStr)
+  if (isNaN(d.getTime())) return dateStr
+  return d.toLocaleDateString('ko-KR', {
+    year: 'numeric', month: 'long', day: 'numeric',
+    timeZone: 'Asia/Seoul',
+  })
+}
+
 /* ─── 섹션 헤더 ─── */
 function SectionLabel({ children }: { children: string }) {
   return <div className="detail-section-label">{children}</div>
@@ -321,7 +330,7 @@ export default async function VocViewPage({ params, searchParams }: Props) {
                 접수일: {fmtDate(row.created_at)}
               </p>
             </div>
-            <Link href="/voc/new" className="btn btn-primary btn-sm" style={{ flexShrink: 0 }}>
+            <Link href="/voc/new" className="btn btn-primary btn-sm show-desktop" style={{ flexShrink: 0 }}>
               <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
                 <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
@@ -335,7 +344,7 @@ export default async function VocViewPage({ params, searchParams }: Props) {
           {/* ─── 접수 정보 ─── */}
           <div className="card detail-card" style={{ marginBottom: 16 }}>
             <SectionLabel>접수 정보</SectionLabel>
-            <div className="detail-field-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(160px,1fr))', gap: 16 }}>
+            <div className="detail-field-grid">
               <Field label="접수자">{row.requester_name}</Field>
               <Field label="부서">{row.requester_dept}</Field>
               <Field label="상태">
@@ -366,12 +375,12 @@ export default async function VocViewPage({ params, searchParams }: Props) {
           {/* ─── 요청 정보 ─── */}
           <div className="card detail-card" style={{ marginBottom: 16 }}>
             <SectionLabel>요청 정보</SectionLabel>
-            <div className="detail-field-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(160px,1fr))', gap: 16, marginBottom: 16 }}>
+            <div className="detail-field-grid" style={{ marginBottom: 16 }}>
               <Field label="제품">{row.product}</Field>
               <Field label="VOC 유형">{VOC_TYPE_LABEL[row.voc_type] ?? row.voc_type}</Field>
               {row.customer && <Field label="요청 고객사">{row.customer}</Field>}
               <Field label="우선순위">{PRIORITY_LABEL[row.priority] ?? row.priority}</Field>
-              {row.due_date && <Field label="요청 기한">{row.due_date}</Field>}
+              {row.due_date && <Field label="요청 기한">{fmtDateKo(row.due_date)}</Field>}
             </div>
             <div className="detail-text-section" style={{ borderTop: '1px solid var(--surface-border)', paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
               <Field label="요약">{row.summary}</Field>

@@ -258,7 +258,8 @@ export default function VocMyPage() {
 
           {/* ─── 이메일 인증 폼 (미인증 상태) ─── */}
           {!email && (
-            <div className="card" style={{ maxWidth: 480, margin: '40px auto 16px', padding: '40px 36px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 220px)' }}>
+            <div className="card" style={{ width: '100%', maxWidth: 480, margin: '0 auto', padding: '40px 36px' }}>
 
               {/* STEP 1: 이메일 입력 */}
               {step === 'email' && (
@@ -379,6 +380,7 @@ export default function VocMyPage() {
                 </form>
               )}
 
+            </div>
             </div>
           )}
 
