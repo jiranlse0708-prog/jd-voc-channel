@@ -408,15 +408,9 @@ export default function VocMyPage() {
           {/* ─── 결과 0건 ─── */}
           {!loading && !loadError && email && items.length === 0 && (
             <div className="card" style={{ textAlign: 'center', padding: '56px 16px' }}>
-              <p style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 600, color: 'var(--text-strong)' }}>
+              <p style={{ margin: 0, fontSize: 15, fontWeight: 600, color: 'var(--text-strong)' }}>
                 접수 내역이 없습니다
               </p>
-              <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--text-muted)' }}>
-                이메일 도입 이전에 접수한 건은 JIRA에서 확인하세요.
-              </p>
-              <Link href="/voc/new" className="btn btn-primary btn-sm" style={{ display: 'inline-flex' }}>
-                새 접수하러 가기
-              </Link>
             </div>
           )}
 
