@@ -326,7 +326,6 @@ export default function VocMyPage() {
                           }}
                         />
                       ))}
-                      <span style={{ fontSize: 20, color: 'var(--text-subtle)', margin: '0 2px', lineHeight: 1 }}>—</span>
                       {[3, 4, 5].map(idx => (
                         <input
                           key={idx}
