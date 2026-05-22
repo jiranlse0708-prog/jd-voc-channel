@@ -118,8 +118,9 @@ export async function POST(req: NextRequest) {
         .upload(filePath, f.buffer, { contentType: f.type || 'application/octet-stream', upsert: false })
 
       if (uploadErr) {
-        console.error(`[Storage upload failed] ${f.name}:`, uploadErr.message)
-        failedUploads.push(`${f.name}(${uploadErr.message})`)
+        const errDetail = JSON.stringify(uploadErr)
+        console.error(`[Storage upload failed] ${f.name}: type=${f.type} size=${f.size} err=${errDetail}`)
+        failedUploads.push(`${f.name}[${errDetail}]`)
         continue
       }
       attachments.push({ name: f.name, size: f.size, type: f.type, path: filePath })
