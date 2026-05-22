@@ -106,7 +106,7 @@ const KNOWN_ACCOUNTS: Record<string, string> = {
 }
 
 /** 인라인: *볼드*, _이탤릭_, [^파일명], !이미지.png|...!, [~accountid:...] 멘션 */
-function jiraInline(text: string, attachments?: CommentAttachment[]) {
+function jiraInline(text: string, attachments?: CommentAttachment[], accountMap?: Map<string, string>) {
   const re = /(!([^!\s][^!|]*)(?:\|[^!]*)?!|\[\^([^\]]+)\]|\[~accountid:([^\]]+)\]|\[~([^\]]+)\]|\*([^*\n]+)\*|_([^_\n]+)_)/g
   const parts: React.ReactNode[] = []
   let last = 0, m: RegExpExecArray | null
@@ -154,11 +154,10 @@ function jiraInline(text: string, attachments?: CommentAttachment[]) {
         )
       )
     } else if (m[0].startsWith('[~accountid:') || m[0].startsWith('[~')) {
-      const displayName = m[4]
-        ? (KNOWN_ACCOUNTS[m[4]] ?? '담당자')
-        : (m[5] ?? '담당자')
+      const accountId  = m[4] ?? m[5] ?? ''
+      const name = accountMap?.get(accountId) ?? KNOWN_ACCOUNTS[accountId] ?? '담당자'
       parts.push(
-        <span key={m.index} style={{ fontSize: 12, fontWeight: 600, color: 'var(--brand-600)' }}>@{displayName}</span>
+        <span key={m.index} style={{ fontSize: 12, fontWeight: 600, color: 'var(--gray-500)' }}>@{name}</span>
       )
     } else if (m[0].startsWith('*')) {
       parts.push(<strong key={m.index}>{m[6]}</strong>)
@@ -187,7 +186,7 @@ function resolveAttachments(
 }
 
 /** 블록: 테이블(||헤더||, |데이터|) + 인라인 마크업 */
-function renderJira(text: string, attachments?: CommentAttachment[]) {
+function renderJira(text: string, attachments?: CommentAttachment[], accountMap?: Map<string, string>) {
   const lines = text.split('\n')
   const out: React.ReactNode[] = []
   let tableRows: { header: boolean; cells: string[] }[] = []
@@ -210,7 +209,7 @@ function renderJira(text: string, attachments?: CommentAttachment[]) {
                       fontWeight: r.header ? 700 : 400,
                       background: r.header ? 'var(--gray-50)' : 'transparent',
                     }}>
-                      {jiraInline(cell.trim(), attachments)}
+                      {jiraInline(cell.trim(), attachments, accountMap)}
                     </Tag>
                   )
                 })}
@@ -232,7 +231,7 @@ function renderJira(text: string, attachments?: CommentAttachment[]) {
       if (line.trim() === '') {
         out.push(<br key={`br-${li}`} />)
       } else {
-        out.push(<div key={`l-${li}`} style={{ lineHeight: 1.65 }}>{jiraInline(line, attachments)}</div>)
+        out.push(<div key={`l-${li}`} style={{ lineHeight: 1.65 }}>{jiraInline(line, attachments, accountMap)}</div>)
       }
     }
   })
@@ -314,29 +313,45 @@ export default async function VocViewPage({ params, searchParams }: Props) {
   )
   const jiraHost = process.env.JIRA_HOST?.replace(/\/$/, '')
 
-  /* JIRA 첨부파일 맵 — 댓글에 [^파일명] 또는 !파일명! 있을 때 직접 API 조회 */
-  const jiraAttachMap = new Map<string, string>()
+  const cred     = Buffer.from(`${process.env.JIRA_EMAIL}:${process.env.JIRA_API_TOKEN}`).toString('base64')
+  const jiraHdrs = { Authorization: `Basic ${cred}`, Accept: 'application/json' }
+
+  /* JIRA 첨부파일 맵 + 계정 이름 맵 — 병렬 조회 */
+  const jiraAttachMap  = new Map<string, string>()
+  const jiraAccountMap = new Map<string, string>()
+
   const hasAttachRef  = comments.some(c =>
     /\[\^[^\]]+\]/.test(c.body) || /![^!\s][^!|]*(?:\|[^!]*)?!/.test(c.body)
   )
-  if (hasAttachRef && row.jira_issue_key && jiraHost) {
-    try {
-      const cred = Buffer.from(
-        `${process.env.JIRA_EMAIL}:${process.env.JIRA_API_TOKEN}`
-      ).toString('base64')
-      const res = await fetch(
-        `${jiraHost}/rest/api/3/issue/${row.jira_issue_key}?fields=attachment`,
-        { headers: { Authorization: `Basic ${cred}`, Accept: 'application/json' }, cache: 'no-store' }
-      )
-      if (res.ok) {
-        const data = await res.json() as { fields?: { attachment?: { filename: string; content: string }[] } }
-        for (const a of data.fields?.attachment ?? []) {
-          jiraAttachMap.set(a.filename, a.content)
-        }
-      }
-    } catch (e) {
-      console.error('[detail] jira attachment fetch', e)
-    }
+
+  /* 멘션된 accountId 수집 (KNOWN_ACCOUNTS 제외) */
+  const mentionIds = [...new Set(
+    comments.flatMap(c => [
+      ...[...c.body.matchAll(/\[~accountid:([^\]]+)\]/g)].map(m => m[1]),
+      ...[...c.body.matchAll(/\[~([^\]]+)\]/g)].map(m => m[1]),
+    ]).filter(id => id && !KNOWN_ACCOUNTS[id])
+  )]
+
+  if (jiraHost) {
+    await Promise.all([
+      /* 첨부파일 URL */
+      hasAttachRef && row.jira_issue_key
+        ? fetch(`${jiraHost}/rest/api/3/issue/${row.jira_issue_key}?fields=attachment`, { headers: jiraHdrs, cache: 'no-store' })
+            .then(r => r.ok ? r.json() : null)
+            .then((data: { fields?: { attachment?: { filename: string; content: string }[] } } | null) => {
+              for (const a of data?.fields?.attachment ?? []) jiraAttachMap.set(a.filename, a.content)
+            })
+            .catch(e => console.error('[detail] jira attachment fetch', e))
+        : Promise.resolve(),
+
+      /* 계정 이름 */
+      ...mentionIds.map(id =>
+        fetch(`${jiraHost}/rest/api/3/user?accountId=${encodeURIComponent(id)}`, { headers: jiraHdrs, cache: 'no-store' })
+          .then(r => r.ok ? r.json() : null)
+          .then((u: { displayName?: string } | null) => { if (u?.displayName) jiraAccountMap.set(id, u.displayName) })
+          .catch(e => console.error('[detail] jira user fetch', e))
+      ),
+    ])
   }
 
   return (
@@ -471,7 +486,7 @@ export default async function VocViewPage({ params, searchParams }: Props) {
                         <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-strong)' }}>{c.author}</span>
                         <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{fmtDate(c.created_at)}</span>
                       </div>
-                      <div style={{ fontSize: 13, color: 'var(--text-default)' }}>{renderJira(c.body, resolveAttachments(c.body, c.attachments, jiraAttachMap))}</div>
+                      <div style={{ fontSize: 13, color: 'var(--text-default)' }}>{renderJira(c.body, resolveAttachments(c.body, c.attachments, jiraAttachMap), jiraAccountMap)}</div>
                     </div>
                   </div>
                 ))}
