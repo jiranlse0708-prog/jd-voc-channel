@@ -82,7 +82,30 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    /* ── 5. Supabase Storage 업로드 ── */
+    /* ── 5. JIRA 이슈 생성 (DB 저장 전 — 실패 시 접수 자체를 중단) ── */
+    let jiraKey: string
+    try {
+      const jiraResult = await createJiraIssue({
+        dept, name, email, product, vocType, summary,
+        customer, priority, purpose, screenPath, detail, dueDate,
+      })
+      jiraKey = jiraResult.key
+    } catch (jiraErr) {
+      if (jiraErr instanceof JiraAuthError) {
+        console.error('[JIRA 인증 오류]', jiraErr)
+        return NextResponse.json(
+          { error: 'JIRA 연동 오류가 발생했습니다. 관리자에게 문의해 주세요.' },
+          { status: 500 }
+        )
+      }
+      console.error('[JIRA issue creation failed]', jiraErr)
+      return NextResponse.json(
+        { error: 'JIRA 이슈 등록에 실패했습니다. 잠시 후 다시 시도해 주세요.' },
+        { status: 500 }
+      )
+    }
+
+    /* ── 6. Supabase Storage 업로드 ── */
     const attachments: { name: string; size: number; type: string; path: string }[] = []
 
     for (const f of fileEntries) {
@@ -98,13 +121,13 @@ export async function POST(req: NextRequest) {
       attachments.push({ name: f.name, size: f.size, type: f.type, path: filePath })
     }
 
-    /* ── 6. DB 삽입 ── */
+    /* ── 7. DB 삽입 (jira_issue_key 포함) ── */
     const { data, error: dbErr } = await supabase
       .from('voc_submission')
       .insert({
         requester_dept:  dept,
         requester_name:  name,
-        requester_email: email,  // 필수, 이미 정규화·검증 완료
+        requester_email: email,
         product,
         voc_type:        vocType,
         summary,
@@ -115,8 +138,8 @@ export async function POST(req: NextRequest) {
         detail,
         due_date:        dueDate,
         attachments,
-        current_status:  '접수',  // JIRA 워크플로우 첫 상태와 일치
-        jira_issue_key:  null,
+        current_status:  '접수',
+        jira_issue_key:  jiraKey,
       })
       .select('id, view_token')
       .single()
@@ -129,35 +152,12 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    /* ── 7. JIRA 이슈 생성 ── */
-    let jiraKey: string | null = null
-    try {
-      const jiraResult = await createJiraIssue({
-        dept, name, email, product, vocType, summary,
-        customer, priority, purpose, screenPath, detail, dueDate,
-      })
-      jiraKey = jiraResult.key
-
-      /* JIRA 첨부파일 업로드 */
-      for (const f of fileEntries) {
-        try {
-          await addJiraAttachment(jiraKey, f.name, f.buffer, f.type)
-        } catch (attachErr) {
-          console.error(`[JIRA attach failed] ${f.name}:`, attachErr)
-        }
-      }
-
-      /* DB에 jira_issue_key 반영 */
-      await supabase
-        .from('voc_submission')
-        .update({ jira_issue_key: jiraKey })
-        .eq('id', data.id)
-    } catch (jiraErr) {
-      if (jiraErr instanceof JiraAuthError) {
-        /* 토큰 만료·무효 — 운영자가 즉시 조치 필요 */
-        console.error('[JIRA 인증 오류] API 토큰이 만료되었거나 유효하지 않습니다. .env의 JIRA_API_TOKEN을 갱신하세요.', jiraErr)
-      } else {
-        console.error('[JIRA issue creation failed]', jiraErr)
+    /* ── 8. JIRA 첨부파일 업로드 (실패해도 접수는 유지) ── */
+    for (const f of fileEntries) {
+      try {
+        await addJiraAttachment(jiraKey, f.name, f.buffer, f.type)
+      } catch (attachErr) {
+        console.error(`[JIRA attach failed] ${f.name}:`, attachErr)
       }
     }
 
