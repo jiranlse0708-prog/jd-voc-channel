@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHmac } from 'crypto'
-import { Resend } from 'resend'
+import nodemailer from 'nodemailer'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -27,10 +27,17 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY)
-    await resend.emails.send({
-      from: process.env.EMAIL_FROM ?? 'JD VOC 채널 <onboarding@resend.dev>',
-      to:   email,
+    const transport = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD,
+      },
+    })
+
+    await transport.sendMail({
+      from:    `JD VOC 채널 <${process.env.GMAIL_USER}>`,
+      to:      email,
       subject: '[JD VOC 채널] 이메일 인증코드',
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
