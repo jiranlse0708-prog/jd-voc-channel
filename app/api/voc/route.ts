@@ -116,12 +116,14 @@ export async function POST(req: NextRequest) {
 
     for (const f of fileEntries) {
       // 파일명 특수문자 → 안전한 이름으로 변환 (Supabase Storage 경로 문제 방지)
-      const safeName = f.name.replace(/[#?&+%]/g, '_')
-      const filePath = `${storagePrefix}/${safeName}`
-      // Supabase 버킷 MIME 타입 제한 우회 — 모든 파일을 octet-stream으로 업로드
+      // 한글·특수문자 등 non-ASCII 파일명 → UUID 기반 경로로 대체
+      // 원본 파일명은 DB attachments.name 에 보존
+      const ext      = f.name.split('.').pop()?.toLowerCase() ?? ''
+      const safeKey  = `${randomUUID()}${ext ? `.${ext}` : ''}`
+      const filePath = `${storagePrefix}/${safeKey}`
       const { error: uploadErr } = await supabase.storage
         .from(BUCKET)
-        .upload(filePath, f.buffer, { contentType: 'application/octet-stream', upsert: false })
+        .upload(filePath, f.buffer, { contentType: f.type || 'application/octet-stream', upsert: false })
 
       if (uploadErr) {
         console.error(`[Storage upload failed] ${f.name}: type=${f.type} size=${f.size} err=${JSON.stringify(uploadErr)}`)
