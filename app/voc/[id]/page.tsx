@@ -330,12 +330,14 @@ export default async function VocViewPage({ params, searchParams }: Props) {
                 접수일: {fmtDate(row.created_at)}
               </p>
             </div>
-            <Link href="/voc/new" className="btn btn-primary btn-sm show-desktop" style={{ flexShrink: 0 }}>
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-              새 VOC 접수
-            </Link>
+            <div className="show-desktop" style={{ flexShrink: 0 }}>
+              <Link href="/voc/new" className="btn btn-primary btn-sm">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+                새 VOC 접수
+              </Link>
+            </div>
           </div>
 
           {/* ─── 워크플로우 Stepper ─── */}
