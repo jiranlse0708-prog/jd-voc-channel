@@ -452,7 +452,8 @@ body {
   .voc-mobile-list  { display: flex; }
   /* 모바일: 페이지 좌우 여백 축소 (main + container 둘 다) */
   .voc-page-main { padding: 24px 16px 60px; }
-  .voc-page-container { padding-left: 0; padding-right: 0; }
+  .voc-page-container,
+  .page-container-wide.voc-page-container { padding-left: 0; padding-right: 0; }
   /* 모바일: 필터 칩 컴팩트 + 카드와 간격 확대 */
   .filter-chips-row { gap: 6px; margin-bottom: 24px; }
   .filter-chips-row .btn-sm { padding-left: 10px; padding-right: 10px; font-size: 13px; }
