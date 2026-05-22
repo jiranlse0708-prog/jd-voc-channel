@@ -179,15 +179,23 @@ export async function createJiraIssue(
   }
 
   return withRetry(async () => {
-    const res = await fetch(apiUrl('/issue'), {
-      method:  'POST',
-      headers: {
-        Authorization:  authHeader(),
-        'Content-Type': 'application/json',
-        Accept:         'application/json',
-      },
-      body: JSON.stringify(body),
-    })
+    const ctrl = new AbortController()
+    const tid  = setTimeout(() => ctrl.abort(), 6000)
+    let res: Response
+    try {
+      res = await fetch(apiUrl('/issue'), {
+        method:  'POST',
+        headers: {
+          Authorization:  authHeader(),
+          'Content-Type': 'application/json',
+          Accept:         'application/json',
+        },
+        body:   JSON.stringify(body),
+        signal: ctrl.signal,
+      })
+    } finally {
+      clearTimeout(tid)
+    }
 
     if (!res.ok) {
       const text = await res.text()
@@ -216,15 +224,23 @@ export async function addJiraAttachment(
     const form = new FormData()
     form.append('file', new Blob([new Uint8Array(buffer)], { type: mimeType }), fileName)
 
-    const res = await fetch(apiUrl(`/issue/${issueKey}/attachments`), {
-      method:  'POST',
-      headers: {
-        Authorization:         authHeader(),
-        'X-Atlassian-Token':   'no-check',
-        Accept:                'application/json',
-      },
-      body: form,
-    })
+    const ctrl = new AbortController()
+    const tid  = setTimeout(() => ctrl.abort(), 8000)
+    let res: Response
+    try {
+      res = await fetch(apiUrl(`/issue/${issueKey}/attachments`), {
+        method:  'POST',
+        headers: {
+          Authorization:         authHeader(),
+          'X-Atlassian-Token':   'no-check',
+          Accept:                'application/json',
+        },
+        body:   form,
+        signal: ctrl.signal,
+      })
+    } finally {
+      clearTimeout(tid)
+    }
 
     if (!res.ok) {
       const text = await res.text()
