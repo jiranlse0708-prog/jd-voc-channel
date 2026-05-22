@@ -105,15 +105,36 @@ const KNOWN_ACCOUNTS: Record<string, string> = {
   '712020:eab47ad1-5185-4f87-ad6e-cf1d7744d516': '김정태',
 }
 
-/** 인라인: *볼드*, _이탤릭_, [^파일명], [~accountid:...] 멘션 */
+/** 인라인: *볼드*, _이탤릭_, [^파일명], !이미지.png|...!, [~accountid:...] 멘션 */
 function jiraInline(text: string, attachments?: CommentAttachment[]) {
-  const re = /(\[\^([^\]]+)\]|\[~accountid:([^\]]+)\]|\[~([^\]]+)\]|\*([^*\n]+)\*|_([^_\n]+)_)/g
+  const re = /(!([^!\s][^!|]*)(?:\|[^!]*)?!|\[\^([^\]]+)\]|\[~accountid:([^\]]+)\]|\[~([^\]]+)\]|\*([^*\n]+)\*|_([^_\n]+)_)/g
   const parts: React.ReactNode[] = []
   let last = 0, m: RegExpExecArray | null
   while ((m = re.exec(text)) !== null) {
     if (m.index > last) parts.push(text.slice(last, m.index))
-    if (m[0].startsWith('[^')) {
-      const filename = m[2]
+    if (m[0].startsWith('!') && m[2]) {
+      /* !이미지.png|params! 임베드 */
+      const filename = m[2].trim()
+      const attached = attachments?.find(a => a.name === filename)
+      const proxyUrl = attached ? `/api/jira/attachment?url=${encodeURIComponent(attached.url)}` : null
+      parts.push(
+        proxyUrl ? (
+          <a key={m.index} href={proxyUrl} target="_blank" rel="noopener noreferrer"
+            style={{ display: 'inline-block', margin: '4px 0' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={proxyUrl} alt={filename}
+              style={{ maxWidth: '100%', maxHeight: 320, borderRadius: 6, display: 'block', border: '1px solid var(--surface-border)' }} />
+          </a>
+        ) : (
+          <span key={m.index} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 3,
+            fontSize: 11, color: 'var(--text-muted)',
+            background: 'var(--gray-100)', borderRadius: 4, padding: '1px 6px',
+          }}>🖼 {filename}</span>
+        )
+      )
+    } else if (m[0].startsWith('[^')) {
+      const filename = m[3]
       const attached = attachments?.find(a => a.name === filename)
       const proxyUrl = attached ? `/api/jira/attachment?url=${encodeURIComponent(attached.url)}` : null
       parts.push(
@@ -137,9 +158,9 @@ function jiraInline(text: string, attachments?: CommentAttachment[]) {
         <span key={m.index} style={{ fontSize: 12, fontWeight: 600, color: 'var(--gray-600)' }}>[대댓글]</span>
       )
     } else if (m[0].startsWith('*')) {
-      parts.push(<strong key={m.index}>{m[5]}</strong>)
+      parts.push(<strong key={m.index}>{m[6]}</strong>)
     } else {
-      parts.push(<em key={m.index}>{m[6]}</em>)
+      parts.push(<em key={m.index}>{m[7]}</em>)
     }
     last = m.index + m[0].length
   }
@@ -153,7 +174,9 @@ function resolveAttachments(
   stored: CommentAttachment[] | undefined,
   liveMap: Map<string, string>
 ): CommentAttachment[] {
-  const refs = [...body.matchAll(/\[\^([^\]]+)\]/g)].map(m => m[1])
+  const fromBracket = [...body.matchAll(/\[\^([^\]]+)\]/g)].map(m => m[1])
+  const fromEmbed   = [...body.matchAll(/!([^!\s][^!|]*)(?:\|[^!]*)?!/g)].map(m => m[1].trim())
+  const refs = [...new Set([...fromBracket, ...fromEmbed])]
   return refs.map(name => {
     const url = liveMap.get(name) ?? stored?.find(a => a.name === name)?.url ?? ''
     return { name, url }

@@ -88,9 +88,11 @@ export async function POST(req: NextRequest) {
     const bodyText   = typeof bodyRaw === 'string' ? bodyRaw : adfToText(bodyRaw)
     const createdAt  = (comment?.created as string) ?? new Date().toISOString()
 
-    /* [^파일명] 패턴이 있으면 JIRA API로 첨부파일 URL 조회 */
+    /* [^파일명] 또는 !파일명! 패턴이 있으면 JIRA API로 첨부파일 URL 조회 */
     let attachments: { name: string; url: string }[] = []
-    const attachRefs = [...bodyText.matchAll(/\[\^([^\]]+)\]/g)].map(m => m[1])
+    const fromBracket = [...bodyText.matchAll(/\[\^([^\]]+)\]/g)].map(m => m[1])
+    const fromEmbed   = [...bodyText.matchAll(/!([^!\s][^!|]*)(?:\|[^!]*)?!/g)].map(m => m[1].trim())
+    const attachRefs  = [...new Set([...fromBracket, ...fromEmbed])]
     if (attachRefs.length > 0) {
       try {
         const jiraHost = process.env.JIRA_HOST?.replace(/\/$/, '')
