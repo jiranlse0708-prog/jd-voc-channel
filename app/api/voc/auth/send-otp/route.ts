@@ -58,8 +58,9 @@ export async function POST(req: NextRequest) {
       `,
     })
   } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
     console.error('[send-otp] email error', e)
-    return NextResponse.json({ error: '이메일 발송에 실패했습니다.' }, { status: 500 })
+    return NextResponse.json({ error: `[DEBUG] ${msg}` }, { status: 500 })
   }
 
   return NextResponse.json({ ok: true })
