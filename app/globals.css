@@ -393,8 +393,10 @@ body {
 }
 .topbar-link:hover { background: var(--surface-hover); color: var(--text-strong); }
 @media (max-width: 640px) {
-  .topbar { padding: 0 14px; }
-  .topbar-link { padding: 6px 8px; font-size: 12px; }
+  .topbar { height: 60px; padding: 0 16px; }
+  .topbar-brand { font-size: 16px; gap: 10px; }
+  .topbar-brand .logo { width: 28px; height: 28px; border-radius: 8px; font-size: 14px; }
+  .topbar-link { padding: 8px 10px; font-size: 14px; }
 }
 
 .tbl { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--surface-card); border: 1px solid var(--surface-border); border-radius: var(--r-lg); overflow: hidden; font-size: 14px; }
