@@ -258,8 +258,7 @@ export default function VocMyPage() {
 
           {/* ─── 이메일 인증 폼 (미인증 상태) ─── */}
           {!email && (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 220px)' }}>
-            <div className="card" style={{ width: '100%', maxWidth: 480, margin: '0 auto', padding: '40px 36px' }}>
+            <div className="card" style={{ maxWidth: 480, margin: '40px auto 16px', padding: '40px 36px' }}>
 
               {/* STEP 1: 이메일 입력 */}
               {step === 'email' && (
@@ -316,10 +315,10 @@ export default function VocMyPage() {
                           onKeyDown={e => onDigitKeyDown(idx, e)}
                           onPaste={onDigitPaste}
                           style={{
-                            flex: '1 1 0', minWidth: 0, maxWidth: 48, height: 48,
+                            flex: '1 1 0', minWidth: 0, maxWidth: 52, height: 60,
                             border: `1.5px solid ${digits[idx] ? 'var(--brand-500)' : 'var(--surface-border)'}`,
-                            borderRadius: 10,
-                            fontSize: 22, fontWeight: 700, textAlign: 'center',
+                            borderRadius: 12,
+                            fontSize: 24, fontWeight: 700, textAlign: 'center',
                             color: 'var(--text-strong)',
                             background: digits[idx] ? 'var(--brand-50, #fff8f2)' : '#fff',
                             outline: 'none', caretColor: 'transparent',
@@ -356,7 +355,6 @@ export default function VocMyPage() {
                 </form>
               )}
 
-            </div>
             </div>
           )}
 
