@@ -401,8 +401,11 @@ export default function VocNewPage() {
       /* 접수 성공 — 드래프트 삭제 */
       localStorage.removeItem(LS.draft)
 
-      const jiraParam = data.jiraKey ? `&jira=${data.jiraKey}` : ''
-      router.push(`/voc/complete?id=${data.id}&token=${data.viewToken}${jiraParam}`)
+      const jiraParam   = data.jiraKey ? `&jira=${data.jiraKey}` : ''
+      const failedParam = data.failedUploads?.length
+        ? `&failedUploads=${encodeURIComponent(data.failedUploads.join(','))}`
+        : ''
+      router.push(`/voc/complete?id=${data.id}&token=${data.viewToken}${jiraParam}${failedParam}`)
     } catch (err) {
       showToast(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
       setIsSubmitting(false)

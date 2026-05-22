@@ -107,15 +107,19 @@ export async function POST(req: NextRequest) {
 
     /* ── 6. Supabase Storage 업로드 ── */
     const attachments: { name: string; size: number; type: string; path: string }[] = []
+    const failedUploads: string[] = []
 
     for (const f of fileEntries) {
-      const filePath = `${storagePrefix}/${f.name}`
+      // 파일명 특수문자 → 안전한 이름으로 변환 (Supabase Storage 경로 문제 방지)
+      const safeName = f.name.replace(/[#?&+%]/g, '_')
+      const filePath = `${storagePrefix}/${safeName}`
       const { error: uploadErr } = await supabase.storage
         .from(BUCKET)
-        .upload(filePath, f.buffer, { contentType: f.type, upsert: false })
+        .upload(filePath, f.buffer, { contentType: f.type || 'application/octet-stream', upsert: false })
 
       if (uploadErr) {
         console.error(`[Storage upload failed] ${f.name}:`, uploadErr.message)
+        failedUploads.push(f.name)
         continue
       }
       attachments.push({ name: f.name, size: f.size, type: f.type, path: filePath })
@@ -175,7 +179,7 @@ export async function POST(req: NextRequest) {
 
     /* ── 9. 성공 응답 ── */
     return NextResponse.json(
-      { id: data.id, viewToken: data.view_token, jiraKey },
+      { id: data.id, viewToken: data.view_token, jiraKey, failedUploads },
       { status: 201 }
     )
   } catch (err) {

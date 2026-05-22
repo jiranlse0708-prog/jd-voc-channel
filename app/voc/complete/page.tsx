@@ -3,11 +3,14 @@ import CopyButton from './CopyButton'
 import Topbar from '@/components/Topbar'
 
 interface Props {
-  searchParams: Promise<{ id?: string; token?: string; jira?: string }>
+  searchParams: Promise<{ id?: string; token?: string; jira?: string; failedUploads?: string }>
 }
 
 export default async function CompletePage({ searchParams }: Props) {
-  const { id, token, jira } = await searchParams
+  const { id, token, jira, failedUploads: failedUploadsRaw } = await searchParams
+  const failedUploads = failedUploadsRaw
+    ? decodeURIComponent(failedUploadsRaw).split(',').filter(Boolean)
+    : []
 
   /* 잘못된 접근 처리 */
   if (!id || !token) {
@@ -68,6 +71,28 @@ export default async function CompletePage({ searchParams }: Props) {
               진행 상황은 JIRA 또는 [내 접수 조회]에서 확인할 수 있습니다.
             </p>
           </div>
+
+          {/* 업로드 실패 경고 */}
+          {failedUploads.length > 0 && (
+            <div style={{
+              marginBottom: 16, padding: '14px 18px',
+              background: 'var(--warning-50)', border: '1px solid var(--warning-100)',
+              borderRadius: 'var(--r-md)', display: 'flex', gap: 10, alignItems: 'flex-start',
+            }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--warning-700)', flexShrink: 0, marginTop: 1 }}>
+                <path d="M8 1.5L1 14h14L8 1.5z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
+                <path d="M8 6v4M8 11.5v.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+              </svg>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--warning-700)', marginBottom: 4 }}>
+                  일부 첨부파일이 업로드되지 않았습니다
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--warning-700)' }}>
+                  {failedUploads.join(', ')}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* 접수 정보 카드 */}
           <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
