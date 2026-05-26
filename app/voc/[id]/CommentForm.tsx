@@ -60,11 +60,11 @@ export default function CommentForm({ vocId, viewToken, requesterName }: Comment
             handleSubmit()
           }
         }}
-        placeholder={submitting ? '등록 중…' : '댓글을 입력하세요'}
-        rows={1}
+        placeholder={submitting ? '등록 중…' : '댓글을 입력 후 Enter를 누르세요.'}
+        rows={2}
         maxLength={5000}
         disabled={submitting}
-        style={{ resize: 'none', minHeight: 40 }}
+        style={{ resize: 'none', minHeight: 64 }}
       />
       {error && <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--danger-600, #dc2626)' }}>{error}</p>}
       {success && <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--success-600, #16a34a)' }}>댓글이 등록되었습니다.</p>}

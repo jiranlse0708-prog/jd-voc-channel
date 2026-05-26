@@ -110,13 +110,13 @@ export default function CommentItem({ vocId, viewToken, jiraCommentId, author, b
 
   return (
     <div className="comment-item-wrap">
-      {children}
       {jiraCommentId && (
         <div className="comment-actions">
           <button onClick={startEdit} disabled={loading}>수정</button>
           <button onClick={handleDelete} disabled={loading}>삭제</button>
         </div>
       )}
+      {children}
       {error && <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--danger-600, #dc2626)' }}>{error}</p>}
     </div>
   )
