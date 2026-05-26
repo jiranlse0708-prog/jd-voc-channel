@@ -20,10 +20,10 @@ const VOC_TYPES = [
 ] as const
 
 const PRIORITIES = [
-  { value: 'highest', label: '최상', desc: '당장 개발 진행이 필요한 급 건' },
+  { value: 'highest', label: '최상', desc: '당장 진행이 필요한 급 건' },
   { value: 'high',    label: '상',   desc: '고객과 약속된 기한이 있는 건' },
   { value: 'medium',  label: '중',   desc: '정해진 기한이 없는 일반 건' },
-  { value: 'low',     label: '하',   desc: '개발되면 좋지만 당장 급하지는 않은 건' },
+  { value: 'low',     label: '하',   desc: '처리되면 좋지만 당장 급하지는 않은 건' },
 ] as const
 
 const MAX_FILE_BYTES  = 50  * 1024 * 1024 // 50 MB
