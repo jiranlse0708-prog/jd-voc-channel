@@ -632,13 +632,12 @@ body {
 /* ─── 댓글 수정/삭제 ─── */
 .comment-item-wrap { position: relative; }
 .comment-actions {
-  display: none;
+  display: flex;
   position: absolute;
   top: 0;
   right: 0;
   gap: 2px;
 }
-.comment-item-wrap:hover .comment-actions { display: flex; }
 .comment-actions button {
   background: none;
   border: none;
