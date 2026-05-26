@@ -263,6 +263,92 @@ export async function addJiraComment(
   })
 }
 
+/* ─── JIRA 댓글 수정 ─── */
+export async function updateJiraComment(
+  issueKey:   string,
+  commentId:  string,
+  authorName: string,
+  bodyText:   string,
+): Promise<void> {
+  if (!HOST || !EMAIL || !TOKEN) {
+    throw new Error('JIRA 환경 변수가 설정되지 않았습니다.')
+  }
+
+  const adfBody = {
+    type: 'doc',
+    version: 1,
+    content: [{
+      type: 'paragraph',
+      content: [
+        { type: 'text', text: `[${authorName}] `, marks: [{ type: 'strong' }] },
+        { type: 'text', text: bodyText },
+      ],
+    }],
+  }
+
+  await withRetry(async () => {
+    const ctrl = new AbortController()
+    const tid  = setTimeout(() => ctrl.abort(), 15000)
+    let res: Response
+    try {
+      res = await fetch(apiUrl(`/issue/${issueKey}/comment/${commentId}`), {
+        method:  'PUT',
+        headers: {
+          Authorization:  authHeader(),
+          'Content-Type': 'application/json',
+          Accept:         'application/json',
+        },
+        body:   JSON.stringify({ body: adfBody }),
+        signal: ctrl.signal,
+      })
+    } finally {
+      clearTimeout(tid)
+    }
+
+    if (!res.ok) {
+      const text = await res.text()
+      if (res.status === 401) throw new JiraAuthError(text)
+      if (res.status === 403) throw new Error('이 댓글은 수정할 권한이 없습니다.')
+      throw new Error(`JIRA 댓글 수정 실패 (${res.status}): ${text}`)
+    }
+  })
+}
+
+/* ─── JIRA 댓글 삭제 ─── */
+export async function deleteJiraComment(
+  issueKey:  string,
+  commentId: string,
+): Promise<void> {
+  if (!HOST || !EMAIL || !TOKEN) {
+    throw new Error('JIRA 환경 변수가 설정되지 않았습니다.')
+  }
+
+  await withRetry(async () => {
+    const ctrl = new AbortController()
+    const tid  = setTimeout(() => ctrl.abort(), 15000)
+    let res: Response
+    try {
+      res = await fetch(apiUrl(`/issue/${issueKey}/comment/${commentId}`), {
+        method:  'DELETE',
+        headers: {
+          Authorization: authHeader(),
+          Accept:        'application/json',
+        },
+        signal: ctrl.signal,
+      })
+    } finally {
+      clearTimeout(tid)
+    }
+
+    if (!res.ok) {
+      const text = await res.text()
+      if (res.status === 401) throw new JiraAuthError(text)
+      if (res.status === 403) throw new Error('이 댓글은 삭제할 권한이 없습니다.')
+      throw new Error(`JIRA 댓글 삭제 실패 (${res.status}): ${text}`)
+    }
+  })
+}
+
 /* ─── JIRA 첨부파일 업로드 ─── */
 export async function addJiraAttachment(
   issueKey: string,

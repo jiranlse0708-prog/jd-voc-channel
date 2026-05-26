@@ -628,3 +628,26 @@ body {
   .detail-text-section  { gap: 20px !important; }
   .card.detail-card     { padding: 20px; }
 }
+
+/* ─── 댓글 수정/삭제 ─── */
+.comment-item-wrap { position: relative; }
+.comment-actions {
+  display: none;
+  gap: 4px;
+  margin-top: 6px;
+}
+.comment-item-wrap:hover .comment-actions { display: flex; }
+.comment-actions button {
+  background: none;
+  border: none;
+  font-size: 11px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: inherit;
+}
+.comment-actions button:hover {
+  color: var(--text-strong);
+  background: var(--gray-100);
+}

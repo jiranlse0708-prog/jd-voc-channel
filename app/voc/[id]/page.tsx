@@ -6,6 +6,7 @@ import { VOC_TYPE_LABEL, PRIORITY_LABEL, PRODUCT_LABEL } from '@/lib/mapping'
 import Topbar from '@/components/Topbar'
 import AttachmentList from '@/components/AttachmentList'
 import CommentForm from './CommentForm'
+import CommentItem from './CommentItem'
 
 const BUCKET = 'voc-attachments'
 
@@ -477,7 +478,7 @@ export default async function VocViewPage({ params, searchParams }: Props) {
               {comments.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   {comments.map((c, i) => (
-                    <div key={i} style={{
+                    <div key={c.jira_comment_id ?? i} style={{
                       display: 'flex', gap: 12, alignItems: 'flex-start',
                       paddingTop: i === 0 ? 0 : 16,
                       paddingBottom: 16,
@@ -498,7 +499,15 @@ export default async function VocViewPage({ params, searchParams }: Props) {
                           <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-strong)' }}>{c.author}</span>
                           <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{fmtDate(c.created_at)}</span>
                         </div>
-                        <div style={{ fontSize: 13, color: 'var(--text-default)' }}>{renderJira(c.body, resolveAttachments(c.body, c.attachments, jiraAttachMap), jiraAccountMap)}</div>
+                        <CommentItem
+                          vocId={row.id}
+                          viewToken={token!}
+                          jiraCommentId={c.jira_comment_id ?? null}
+                          author={c.author}
+                          body={c.body}
+                        >
+                          <div style={{ fontSize: 13, color: 'var(--text-default)' }}>{renderJira(c.body, resolveAttachments(c.body, c.attachments, jiraAttachMap), jiraAccountMap)}</div>
+                        </CommentItem>
                       </div>
                     </div>
                   ))}
