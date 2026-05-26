@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
       attachments = [],
     } = body
     const email = rawEmail?.toLowerCase().trim() ?? ''
+    const safeCustomer = (customer ?? '').replace(/\s/g, '')
 
     /* ── 2. 서버 기본 검증 ── */
     const required = { dept, name, email, product, vocType, summary, purpose, screenPath, detail }
@@ -55,21 +56,21 @@ export async function POST(req: NextRequest) {
     try {
       const jiraResult = await createJiraIssue({
         dept, name, email, product, vocType, summary,
-        customer, priority, purpose, screenPath, detail, dueDate,
+        customer: safeCustomer, priority, purpose, screenPath, detail, dueDate,
       })
       jiraKey = jiraResult.key
     } catch (jiraErr) {
       if (jiraErr instanceof JiraAuthError) {
         console.error('[JIRA 인증 오류]', jiraErr)
         return NextResponse.json(
-          { error: 'JIRA 연동에 인증 오류가 발생했습니다. 관리자에게 문의해 주세요.' },
+          { error: 'JIRA 연동에 인증 오류가 발생했습니다.', detail: '관리자에게 문의해 주세요.' },
           { status: 500 }
         )
       }
       const errMsg = jiraErr instanceof Error ? jiraErr.message : String(jiraErr)
       console.error('[JIRA issue creation failed]', errMsg)
       return NextResponse.json(
-        { error: `JIRA 이슈 등록에 실패했습니다: ${errMsg}` },
+        { error: 'JIRA 이슈 등록에 실패했습니다.', detail: errMsg },
         { status: 500 }
       )
     }
@@ -84,7 +85,7 @@ export async function POST(req: NextRequest) {
         product,
         voc_type:        vocType,
         summary,
-        customer:        customer || null,
+        customer:        safeCustomer || null,
         priority,
         purpose,
         screen_path:     screenPath,
@@ -100,7 +101,7 @@ export async function POST(req: NextRequest) {
     if (dbErr) {
       console.error('[DB insert error]', dbErr)
       return NextResponse.json(
-        { error: 'DB 저장 중 오류가 발생했습니다. 관리자에게 문의해주세요.' },
+        { error: 'DB 저장 중 오류가 발생했습니다.', detail: dbErr.message },
         { status: 500 }
       )
     }
@@ -142,9 +143,10 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     )
   } catch (err) {
-    console.error('[POST /api/voc]', err)
+    const errMsg = err instanceof Error ? err.message : String(err)
+    console.error('[POST /api/voc]', errMsg)
     return NextResponse.json(
-      { error: '서버 오류가 발생했습니다. 관리자에게 문의해주세요.' },
+      { error: '서버 오류가 발생했습니다.', detail: errMsg },
       { status: 500 }
     )
   }

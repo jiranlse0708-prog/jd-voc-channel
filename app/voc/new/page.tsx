@@ -129,18 +129,18 @@ export default function VocNewPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   /* 토스트 */
-  const [toast,     setToast]     = useState<string | null>(null)
+  const [toast,     setToast]     = useState<{ msg: string; detail?: string } | null>(null)
   const [toastHide, setToastHide] = useState(false)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const showToast = useCallback((msg: string) => {
+  const showToast = useCallback((msg: string, detail?: string) => {
     if (toastTimer.current) clearTimeout(toastTimer.current)
     setToastHide(false)
-    setToast(msg)
+    setToast({ msg, detail })
     toastTimer.current = setTimeout(() => {
       setToastHide(true)
       setTimeout(() => setToast(null), 200)
-    }, 4000)
+    }, 6000)
   }, [])
 
   const dismissToast = () => {
@@ -437,11 +437,18 @@ export default function VocNewPage() {
       try {
         data = await res.json()
       } catch {
-        throw new Error('서버 오류가 발생했습니다. 관리자에게 문의해주세요.')
+        showToast('서버 오류가 발생했습니다.', `HTTP ${res.status}`)
+        setIsSubmitting(false)
+        return
       }
 
       if (!res.ok) {
-        throw new Error((data.error as string) ?? '접수 중 오류가 발생했습니다.')
+        showToast(
+          (data.error as string) ?? '접수 중 오류가 발생했습니다.',
+          (data.detail as string) ?? undefined,
+        )
+        setIsSubmitting(false)
+        return
       }
 
       /* 접수 성공 — 드래프트 삭제 */
@@ -620,9 +627,10 @@ export default function VocNewPage() {
                 <input
                   className="input"
                   value={customer}
-                  onChange={e => setCustomer(e.target.value)}
+                  onChange={e => setCustomer(e.target.value.replace(/\s/g, ''))}
                   placeholder="요청 고객사가 있는 경우에만 작성"
                 />
+                <p className="field-help">띄어쓰기 없이 입력해 주세요.</p>
               </div>
               <div>
                 <label className="field-label">우선순위</label>
@@ -920,7 +928,12 @@ export default function VocNewPage() {
             <circle cx="9" cy="9" r="8" stroke="currentColor" strokeWidth="1.6"/>
             <path d="M9 5.5v4M9 11.5v.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
           </svg>
-          <span className="toast-msg">{toast}</span>
+          <div className="toast-msg">
+            <span>{toast.msg}</span>
+            {toast.detail && (
+              <span style={{ display: 'block', fontSize: 12, opacity: 0.85, marginTop: 4 }}>{toast.detail}</span>
+            )}
+          </div>
           <button className="toast-close" onClick={dismissToast} aria-label="닫기">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
