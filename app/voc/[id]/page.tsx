@@ -422,7 +422,6 @@ export default async function VocViewPage({ params, searchParams }: Props) {
 
           {/* ─── 요청 정보 ─── */}
           <div className="card detail-card" style={{ marginBottom: 16 }}>
-            <SectionLabel>요청 정보</SectionLabel>
             <EditForm
               vocId={row.id}
               viewToken={token!}
