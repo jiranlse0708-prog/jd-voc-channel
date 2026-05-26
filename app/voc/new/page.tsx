@@ -630,7 +630,6 @@ export default function VocNewPage() {
                   onChange={e => setCustomer(e.target.value.replace(/\s/g, ''))}
                   placeholder="요청 고객사가 있는 경우에만 작성"
                 />
-                <p className="field-help">띄어쓰기 없이 입력해 주세요.</p>
               </div>
               <div>
                 <label className="field-label">우선순위</label>
