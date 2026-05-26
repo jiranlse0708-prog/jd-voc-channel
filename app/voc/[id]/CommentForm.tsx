@@ -63,29 +63,23 @@ export default function CommentForm({ vocId, viewToken, requesterName }: Comment
           placeholder="작성자"
           style={{ maxWidth: 120, flexShrink: 0 }}
         />
-        <div style={{ flex: 1, display: 'flex', gap: 8 }}>
+        <div style={{ flex: 1, position: 'relative' }}>
           <textarea
             className="textarea"
             value={body}
             onChange={e => setBody(e.target.value)}
-            placeholder="댓글을 입력하세요"
+            onKeyDown={e => {
+              if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault()
+                handleSubmit()
+              }
+            }}
+            placeholder={submitting ? '등록 중…' : '댓글을 입력하세요 (Ctrl+Enter로 등록)'}
             rows={1}
             maxLength={5000}
-            style={{ resize: 'none', minHeight: 40, flex: 1 }}
+            disabled={submitting}
+            style={{ resize: 'none', minHeight: 40 }}
           />
-          <button
-            className="btn btn-primary btn-sm"
-            disabled={submitting || !authorName.trim() || !body.trim()}
-            onClick={handleSubmit}
-            style={{ flexShrink: 0, alignSelf: 'flex-end' }}
-          >
-            {submitting ? (
-              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style={{ animation: 'spin 1s linear infinite' }}>
-                <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.8" strokeOpacity="0.3"/>
-                <path d="M8 2a6 6 0 016 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-              </svg>
-            ) : '등록'}
-          </button>
         </div>
       </div>
 
