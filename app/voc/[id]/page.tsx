@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase-server'
 import { VOC_TYPE_LABEL, PRIORITY_LABEL, PRODUCT_LABEL } from '@/lib/mapping'
 import Topbar from '@/components/Topbar'
 import AttachmentList from '@/components/AttachmentList'
+import CommentForm from './CommentForm'
 
 const BUCKET = 'voc-attachments'
 
@@ -449,16 +450,16 @@ export default async function VocViewPage({ params, searchParams }: Props) {
             </div>
           )}
 
-          {/* ─── 담당자 코멘트 ─── */}
+          {/* ─── 코멘트 ─── */}
           {comments.length > 0 && (
-            <div className="card detail-card">
+            <div className="card detail-card" style={{ marginBottom: 16 }}>
               {/* 헤더 */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
                   <path d="M14 10a2 2 0 01-2 2H5l-3 3V4a2 2 0 012-2h8a2 2 0 012 2v6z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
                 </svg>
                 <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)' }}>
-                  담당자 코멘트 {comments.length}개
+                  코멘트 {comments.length}개
                 </span>
               </div>
 
@@ -492,6 +493,11 @@ export default async function VocViewPage({ params, searchParams }: Props) {
                 ))}
               </div>
             </div>
+          )}
+
+          {/* ─── 댓글 작성 ─── */}
+          {row.jira_issue_key && (
+            <CommentForm vocId={row.id} viewToken={token!} requesterName={row.requester_name} />
           )}
 
         </div>

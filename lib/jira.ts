@@ -211,6 +211,58 @@ export async function createJiraIssue(
 }
 
 
+/* ─── JIRA 댓글 추가 ─── */
+export async function addJiraComment(
+  issueKey:   string,
+  authorName: string,
+  bodyText:   string,
+): Promise<{ id: string }> {
+  if (!HOST || !EMAIL || !TOKEN) {
+    throw new Error('JIRA 환경 변수가 설정되지 않았습니다.')
+  }
+
+  const adfBody = {
+    type: 'doc',
+    version: 1,
+    content: [{
+      type: 'paragraph',
+      content: [
+        { type: 'text', text: `[${authorName}] `, marks: [{ type: 'strong' }] },
+        { type: 'text', text: bodyText },
+      ],
+    }],
+  }
+
+  return withRetry(async () => {
+    const ctrl = new AbortController()
+    const tid  = setTimeout(() => ctrl.abort(), 15000)
+    let res: Response
+    try {
+      res = await fetch(apiUrl(`/issue/${issueKey}/comment`), {
+        method:  'POST',
+        headers: {
+          Authorization:  authHeader(),
+          'Content-Type': 'application/json',
+          Accept:         'application/json',
+        },
+        body:   JSON.stringify({ body: adfBody }),
+        signal: ctrl.signal,
+      })
+    } finally {
+      clearTimeout(tid)
+    }
+
+    if (!res.ok) {
+      const text = await res.text()
+      if (res.status === 401) throw new JiraAuthError(text)
+      throw new Error(`JIRA 댓글 등록 실패 (${res.status}): ${text}`)
+    }
+
+    const json = await res.json() as { id: string }
+    return { id: json.id }
+  })
+}
+
 /* ─── JIRA 첨부파일 업로드 ─── */
 export async function addJiraAttachment(
   issueKey: string,
