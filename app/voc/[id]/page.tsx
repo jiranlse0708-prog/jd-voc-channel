@@ -7,6 +7,7 @@ import Topbar from '@/components/Topbar'
 import AttachmentList from '@/components/AttachmentList'
 import CommentForm from './CommentForm'
 import CommentItem from './CommentItem'
+import EditForm from './EditForm'
 
 const BUCKET = 'voc-attachments'
 
@@ -422,25 +423,42 @@ export default async function VocViewPage({ params, searchParams }: Props) {
           {/* ─── 요청 정보 ─── */}
           <div className="card detail-card" style={{ marginBottom: 16 }}>
             <SectionLabel>요청 정보</SectionLabel>
-            <div className="detail-field-grid" style={{ marginBottom: 16 }}>
-              <Field label="제품">{row.product}</Field>
-              <Field label="VOC 유형">{VOC_TYPE_LABEL[row.voc_type] ?? row.voc_type}</Field>
-              {row.customer && <Field label="요청 고객사">{row.customer}</Field>}
-              <Field label="우선순위">{PRIORITY_LABEL[row.priority] ?? row.priority}</Field>
-              {row.due_date && <Field label="요청 기한">{fmtDateKo(row.due_date)}</Field>}
-            </div>
-            <div className="detail-text-section" style={{ borderTop: '1px solid var(--surface-border)', paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <Field label="요약">{row.summary}</Field>
-              <Field label="목적/배경">
-                <span style={{ whiteSpace: 'pre-wrap' }}>{row.purpose}</span>
-              </Field>
-              <Field label="화면 경로">
-                <span style={{ whiteSpace: 'pre-wrap' }}>{row.screen_path}</span>
-              </Field>
-              <Field label="상세 내용">
-                <span style={{ whiteSpace: 'pre-wrap' }}>{row.detail}</span>
-              </Field>
-            </div>
+            <EditForm
+              vocId={row.id}
+              viewToken={token!}
+              currentStatus={row.current_status}
+              initial={{
+                product:    row.product,
+                vocType:    row.voc_type,
+                summary:    row.summary,
+                customer:   row.customer ?? '',
+                priority:   row.priority,
+                purpose:    row.purpose,
+                screenPath: row.screen_path,
+                detail:     row.detail,
+                dueDate:    row.due_date,
+              }}
+            >
+              <div className="detail-field-grid" style={{ marginBottom: 16 }}>
+                <Field label="제품">{row.product}</Field>
+                <Field label="VOC 유형">{VOC_TYPE_LABEL[row.voc_type] ?? row.voc_type}</Field>
+                {row.customer && <Field label="요청 고객사">{row.customer}</Field>}
+                <Field label="우선순위">{PRIORITY_LABEL[row.priority] ?? row.priority}</Field>
+                {row.due_date && <Field label="요청 기한">{fmtDateKo(row.due_date)}</Field>}
+              </div>
+              <div className="detail-text-section" style={{ borderTop: '1px solid var(--surface-border)', paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <Field label="요약">{row.summary}</Field>
+                <Field label="목적/배경">
+                  <span style={{ whiteSpace: 'pre-wrap' }}>{row.purpose}</span>
+                </Field>
+                <Field label="화면 경로">
+                  <span style={{ whiteSpace: 'pre-wrap' }}>{row.screen_path}</span>
+                </Field>
+                <Field label="상세 내용">
+                  <span style={{ whiteSpace: 'pre-wrap' }}>{row.detail}</span>
+                </Field>
+              </div>
+            </EditForm>
           </div>
 
           {/* ─── 참고 화면 ─── */}

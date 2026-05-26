@@ -211,6 +211,59 @@ export async function createJiraIssue(
 }
 
 
+/* ─── JIRA 이슈 업데이트 ─── */
+export async function updateJiraIssue(
+  issueKey: string,
+  params:   JiraIssueParams,
+): Promise<void> {
+  if (!HOST || !EMAIL || !TOKEN) {
+    throw new Error('JIRA 환경 변수가 설정되지 않았습니다.')
+  }
+
+  const assigneeId = PRODUCT_ASSIGNEE_ID[params.product]
+  const description = buildAdfDescription(params)
+
+  const body: Record<string, unknown> = {
+    fields: {
+      summary:            `[VOC] [${params.product}] ${params.summary}`,
+      description,
+      priority:           { name: PRIORITY_LABEL[params.priority] ?? params.priority },
+      customfield_10110:  { value: VOC_TYPE_LABEL[params.vocType] ?? params.vocType },
+      customfield_10228:  { value: params.product },
+      customfield_10039:  params.customer ? [params.customer] : [],
+      ...(assigneeId ? { assignee: { accountId: assigneeId } } : {}),
+      ...(assigneeId ? { reporter: { accountId: assigneeId } } : {}),
+      duedate: params.dueDate || null,
+    },
+  }
+
+  await withRetry(async () => {
+    const ctrl = new AbortController()
+    const tid  = setTimeout(() => ctrl.abort(), 15000)
+    let res: Response
+    try {
+      res = await fetch(apiUrl(`/issue/${issueKey}`), {
+        method:  'PUT',
+        headers: {
+          Authorization:  authHeader(),
+          'Content-Type': 'application/json',
+          Accept:         'application/json',
+        },
+        body:   JSON.stringify(body),
+        signal: ctrl.signal,
+      })
+    } finally {
+      clearTimeout(tid)
+    }
+
+    if (!res.ok) {
+      const text = await res.text()
+      if (res.status === 401) throw new JiraAuthError(text)
+      throw new Error(`JIRA 이슈 수정 실패 (${res.status}): ${text}`)
+    }
+  })
+}
+
 /* ─── JIRA 댓글 추가 ─── */
 export async function addJiraComment(
   issueKey:   string,

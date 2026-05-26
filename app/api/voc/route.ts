@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-server'
-import { createJiraIssue, addJiraAttachment, JiraAuthError } from '@/lib/jira'
+import { createJiraIssue, updateJiraIssue, addJiraAttachment, JiraAuthError } from '@/lib/jira'
 import { sendSubmissionConfirm } from '@/lib/mail'
 import { VOC_TYPE_LABEL } from '@/lib/mapping'
 
@@ -149,5 +149,98 @@ export async function POST(req: NextRequest) {
       { error: '서버 오류가 발생했습니다.', detail: errMsg },
       { status: 500 }
     )
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   PUT — VOC 접수 내용 수정
+═══════════════════════════════════════════════════ */
+export async function PUT(req: NextRequest) {
+  try {
+    const supabase = createAdminClient()
+    const body = await req.json() as {
+      vocId:      number
+      viewToken:  string
+      product:    string
+      vocType:    string
+      summary:    string
+      customer:   string
+      priority:   string
+      purpose:    string
+      screenPath: string
+      detail:     string
+      dueDate:    string | null
+    }
+
+    const { vocId, viewToken, product, vocType, summary, customer: rawCustomer,
+            priority, purpose, screenPath, detail, dueDate } = body
+    const customer = (rawCustomer ?? '').replace(/\s/g, '')
+
+    /* ── 1. VOC 조회 + view_token 검증 ── */
+    const { data: row, error: dbErr } = await supabase
+      .from('voc_submission')
+      .select('id, view_token, jira_issue_key, requester_dept, requester_name, requester_email, current_status')
+      .eq('id', vocId)
+      .single()
+
+    if (dbErr || !row) {
+      return NextResponse.json({ error: '접수 건을 찾을 수 없습니다.' }, { status: 404 })
+    }
+    if (row.view_token !== viewToken) {
+      return NextResponse.json({ error: '접근 권한이 없습니다.' }, { status: 403 })
+    }
+    if (row.current_status === '완료' || row.current_status === '삭제') {
+      return NextResponse.json({ error: '완료 또는 삭제된 접수는 수정할 수 없습니다.' }, { status: 400 })
+    }
+
+    /* ── 2. 서버 검증 ── */
+    const required = { product, vocType, summary, purpose, screenPath, detail }
+    const missing = Object.entries(required).filter(([, v]) => !v).map(([k]) => k)
+    if (missing.length > 0) {
+      return NextResponse.json({ error: `필수 항목 누락: ${missing.join(', ')}` }, { status: 400 })
+    }
+
+    /* ── 3. DB 업데이트 ── */
+    const { error: updateErr } = await supabase
+      .from('voc_submission')
+      .update({
+        product,
+        voc_type:    vocType,
+        summary,
+        customer:    customer || null,
+        priority,
+        purpose,
+        screen_path: screenPath,
+        detail,
+        due_date:    dueDate,
+      })
+      .eq('id', row.id)
+
+    if (updateErr) {
+      console.error('[PUT /api/voc] DB update error', updateErr)
+      return NextResponse.json({ error: 'DB 수정에 실패했습니다.', detail: updateErr.message }, { status: 500 })
+    }
+
+    /* ── 4. JIRA 이슈 업데이트 ── */
+    if (row.jira_issue_key) {
+      try {
+        await updateJiraIssue(row.jira_issue_key, {
+          dept: row.requester_dept,
+          name: row.requester_name,
+          email: row.requester_email ?? '',
+          product, vocType, summary, customer, priority, purpose, screenPath, detail, dueDate,
+        })
+      } catch (jiraErr) {
+        const errMsg = jiraErr instanceof Error ? jiraErr.message : String(jiraErr)
+        console.error('[PUT /api/voc] JIRA update failed', errMsg)
+        return NextResponse.json({ ok: true, jiraWarning: errMsg })
+      }
+    }
+
+    return NextResponse.json({ ok: true })
+  } catch (err) {
+    const errMsg = err instanceof Error ? err.message : String(err)
+    console.error('[PUT /api/voc]', errMsg)
+    return NextResponse.json({ error: '서버 오류가 발생했습니다.', detail: errMsg }, { status: 500 })
   }
 }
