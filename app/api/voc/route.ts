@@ -4,6 +4,8 @@ import { createJiraIssue, addJiraAttachment, JiraAuthError } from '@/lib/jira'
 import { sendSubmissionConfirm } from '@/lib/mail'
 import { VOC_TYPE_LABEL } from '@/lib/mapping'
 
+export const maxDuration = 30
+
 const BUCKET = 'voc-attachments'
 
 interface AttachmentMeta { name: string; size: number; type: string; path: string }
@@ -64,9 +66,10 @@ export async function POST(req: NextRequest) {
           { status: 500 }
         )
       }
-      console.error('[JIRA issue creation failed]', jiraErr)
+      const errMsg = jiraErr instanceof Error ? jiraErr.message : String(jiraErr)
+      console.error('[JIRA issue creation failed]', errMsg)
       return NextResponse.json(
-        { error: 'JIRA 이슈 등록에 실패했습니다. 관리자에게 문의해주세요.' },
+        { error: `JIRA 이슈 등록에 실패했습니다: ${errMsg}` },
         { status: 500 }
       )
     }

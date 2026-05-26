@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { createAdminClient } from '@/lib/supabase-server'
 
+export const maxDuration = 30
+
 const BUCKET = 'voc-attachments'
 
 interface FileInfo { name: string; size: number; type: string }

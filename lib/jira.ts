@@ -182,7 +182,7 @@ export async function createJiraIssue(
 
   return withRetry(async () => {
     const ctrl = new AbortController()
-    const tid  = setTimeout(() => ctrl.abort(), 6000)
+    const tid  = setTimeout(() => ctrl.abort(), 15000)
     let res: Response
     try {
       res = await fetch(apiUrl('/issue'), {
@@ -227,7 +227,7 @@ export async function addJiraAttachment(
     form.append('file', new Blob([new Uint8Array(buffer)], { type: mimeType }), fileName)
 
     const ctrl = new AbortController()
-    const tid  = setTimeout(() => ctrl.abort(), 8000)
+    const tid  = setTimeout(() => ctrl.abort(), 15000)
     let res: Response
     try {
       res = await fetch(apiUrl(`/issue/${issueKey}/attachments`), {

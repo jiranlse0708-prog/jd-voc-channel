@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-server'
 import { sendStatusChanged, sendCommentAdded } from '@/lib/mail'
 
+export const maxDuration = 30
+
 /* ─── ADF → 평문 텍스트 ─── */
 function adfToText(node: unknown): string {
   if (!node || typeof node !== 'object') return ''
