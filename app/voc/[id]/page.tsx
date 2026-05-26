@@ -451,53 +451,60 @@ export default async function VocViewPage({ params, searchParams }: Props) {
           )}
 
           {/* ─── 코멘트 ─── */}
-          {comments.length > 0 && (
-            <div className="card detail-card" style={{ marginBottom: 16 }}>
+          {(comments.length > 0 || row.jira_issue_key) && (
+            <div className="card detail-card">
               {/* 헤더 */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
                   <path d="M14 10a2 2 0 01-2 2H5l-3 3V4a2 2 0 012-2h8a2 2 0 012 2v6z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
                 </svg>
                 <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)' }}>
-                  코멘트 {comments.length}개
+                  코멘트{comments.length > 0 ? ` ${comments.length}개` : ''}
                 </span>
               </div>
 
-              {/* 댓글 목록 — 구분선만, 박스 없음 */}
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                {comments.map((c, i) => (
-                  <div key={i} style={{
-                    display: 'flex', gap: 12, alignItems: 'flex-start',
-                    paddingTop: i === 0 ? 0 : 16,
-                    paddingBottom: 16,
-                    borderBottom: i < comments.length - 1 ? '1px solid var(--surface-border)' : 'none',
-                  }}>
-                    {/* 아바타 */}
-                    <div style={{
-                      width: 34, height: 34, borderRadius: '50%',
-                      background: 'var(--brand-500)', color: '#fff',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 13, fontWeight: 700, flexShrink: 0,
-                    }}>
-                      {(c.author ?? '?').slice(0, 1)}
-                    </div>
-                    {/* 내용 */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-strong)' }}>{c.author}</span>
-                        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{fmtDate(c.created_at)}</span>
-                      </div>
-                      <div style={{ fontSize: 13, color: 'var(--text-default)' }}>{renderJira(c.body, resolveAttachments(c.body, c.attachments, jiraAttachMap), jiraAccountMap)}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+              {/* 댓글 작성 폼 */}
+              {row.jira_issue_key && (
+                <>
+                  <CommentForm vocId={row.id} viewToken={token!} requesterName={row.requester_name} />
+                  {comments.length > 0 && (
+                    <div style={{ borderBottom: '1px solid var(--surface-border)', margin: '16px 0' }} />
+                  )}
+                </>
+              )}
 
-          {/* ─── 댓글 작성 ─── */}
-          {row.jira_issue_key && (
-            <CommentForm vocId={row.id} viewToken={token!} requesterName={row.requester_name} />
+              {/* 댓글 목록 */}
+              {comments.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  {comments.map((c, i) => (
+                    <div key={i} style={{
+                      display: 'flex', gap: 12, alignItems: 'flex-start',
+                      paddingTop: i === 0 ? 0 : 16,
+                      paddingBottom: 16,
+                      borderBottom: i < comments.length - 1 ? '1px solid var(--surface-border)' : 'none',
+                    }}>
+                      {/* 아바타 */}
+                      <div style={{
+                        width: 34, height: 34, borderRadius: '50%',
+                        background: 'var(--brand-500)', color: '#fff',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 13, fontWeight: 700, flexShrink: 0,
+                      }}>
+                        {(c.author ?? '?').slice(0, 1)}
+                      </div>
+                      {/* 내용 */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-strong)' }}>{c.author}</span>
+                          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{fmtDate(c.created_at)}</span>
+                        </div>
+                        <div style={{ fontSize: 13, color: 'var(--text-default)' }}>{renderJira(c.body, resolveAttachments(c.body, c.attachments, jiraAttachMap), jiraAccountMap)}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
 
         </div>
