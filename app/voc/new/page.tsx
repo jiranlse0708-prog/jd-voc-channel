@@ -627,6 +627,7 @@ export default function VocNewPage() {
                 <input
                   className="input"
                   value={customer}
+                  onKeyDown={e => { if (e.key === ' ') e.preventDefault() }}
                   onChange={e => setCustomer(e.target.value.replace(/\s/g, ''))}
                   placeholder="요청 고객사가 있는 경우에만 작성"
                 />
