@@ -69,12 +69,12 @@ export default function CommentForm({ vocId, viewToken, requesterName }: Comment
             value={body}
             onChange={e => setBody(e.target.value)}
             onKeyDown={e => {
-              if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+              if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault()
                 handleSubmit()
               }
             }}
-            placeholder={submitting ? '등록 중…' : '댓글을 입력하세요 (Ctrl+Enter로 등록)'}
+            placeholder={submitting ? '등록 중…' : '댓글을 입력하세요'}
             rows={1}
             maxLength={5000}
             disabled={submitting}
