@@ -22,7 +22,8 @@ function skipEmail(to: string, subject: string) {
 /** JIRA 마크업을 이메일용 평문으로 정리 */
 function cleanJiraMarkup(text: string): string {
   return text
-    .replace(/\[~accountid:[^\]]+\]/g, '')
+    .replace(/!([^!\s][^!|]*)(?:\|[^!]*)?!/g, '[이미지: $1]')
+    .replace(/\[~accountid:[^\]]+\]/g, '@멘션')
     .replace(/\[~([^\]]+)\]/g, '@$1')
     .replace(/\[\^([^\]]+)\]/g, '📎 $1')
     .replace(/\*([^*\n]+)\*/g, '$1')

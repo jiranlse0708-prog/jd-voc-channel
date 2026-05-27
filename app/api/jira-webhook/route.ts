@@ -10,7 +10,14 @@ function adfToText(node: unknown): string {
   const n = node as Record<string, unknown>
   if (n.type === 'text')       return (n.text as string) ?? ''
   if (n.type === 'hardBreak')  return '\n'
-  if (Array.isArray(n.content)) return (n.content as unknown[]).map(adfToText).join('')
+  if (n.type === 'mention') {
+    const attrs = n.attrs as Record<string, unknown> | undefined
+    return (attrs?.text as string) ?? '@멘션'
+  }
+  if (Array.isArray(n.content)) {
+    const sep = (n.type === 'paragraph' || n.type === 'bulletList' || n.type === 'orderedList') ? '\n' : ''
+    return (n.content as unknown[]).map(adfToText).join(sep)
+  }
   return ''
 }
 
