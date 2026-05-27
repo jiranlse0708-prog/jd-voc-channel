@@ -108,9 +108,12 @@ const KNOWN_ACCOUNTS: Record<string, string> = {
   '712020:eab47ad1-5185-4f87-ad6e-cf1d7744d516': '김정태',
 }
 
-/** 인라인: *볼드*, _이탤릭_, [^파일명], !이미지.png|...!, [~accountid:...] 멘션 */
+/** 인라인: *볼드*, _이탤릭_, [^파일명], !이미지.png|...!, [~accountid:...] 멘션
+ *  파일명에 `]`/`!`가 들어가는 경우(`[브랜드] 파일.pdf` 등)를 위해
+ *  확장자 boundary 우선 매칭, 실패 시 기존 동작으로 폴백한다.
+ */
 function jiraInline(text: string, attachments?: CommentAttachment[], accountMap?: Map<string, string>) {
-  const re = /(!([^!\s][^!|]*)(?:\|[^!]*)?!|\[\^([^\]]+)\]|\[~accountid:([^\]]+)\]|\[~([^\]]+)\]|\*([^*\n]+)\*|_([^_\n]+)_)/g
+  const re = /(!([^\n!]+?\.(?:png|jpg|jpeg|gif|webp|svg|bmp|avif|heic|heif))(?:\|[^!\n]*)?!|\[\^([^\n]+?\.[A-Za-z0-9]{1,10}|[^\]\n]+)\]|\[~accountid:([^\]]+)\]|\[~([^\]]+)\]|\*([^*\n]+)\*|_([^_\n]+)_)/gi
   const parts: React.ReactNode[] = []
   let last = 0, m: RegExpExecArray | null
   while ((m = re.exec(text)) !== null) {
@@ -179,8 +182,8 @@ function resolveAttachments(
   stored: CommentAttachment[] | undefined,
   liveMap: Map<string, string>
 ): CommentAttachment[] {
-  const fromBracket = [...body.matchAll(/\[\^([^\]]+)\]/g)].map(m => m[1])
-  const fromEmbed   = [...body.matchAll(/!([^!\s][^!|]*)(?:\|[^!]*)?!/g)].map(m => m[1].trim())
+  const fromBracket = [...body.matchAll(/\[\^([^\n]+?\.[A-Za-z0-9]{1,10}|[^\]\n]+)\]/g)].map(m => m[1])
+  const fromEmbed   = [...body.matchAll(/!([^\n!]+?\.(?:png|jpg|jpeg|gif|webp|svg|bmp|avif|heic|heif))(?:\|[^!\n]*)?!/gi)].map(m => m[1].trim())
   const refs = [...new Set([...fromBracket, ...fromEmbed])]
   return refs.map(name => {
     const url = liveMap.get(name) ?? stored?.find(a => a.name === name)?.url ?? ''

@@ -100,8 +100,9 @@ export async function POST(req: NextRequest) {
 
     /* [^파일명] 또는 !파일명! 패턴이 있으면 JIRA API로 첨부파일 URL 조회 */
     let attachments: { name: string; url: string }[] = []
-    const fromBracket = [...bodyText.matchAll(/\[\^([^\]]+)\]/g)].map(m => m[1])
-    const fromEmbed   = [...bodyText.matchAll(/!([^!\s][^!|]*)(?:\|[^!]*)?!/g)].map(m => m[1].trim())
+    /* 파일명에 `]`가 들어가는 경우(`[브랜드] 파일.pdf`)는 확장자 boundary로 우선 매칭 */
+    const fromBracket = [...bodyText.matchAll(/\[\^([^\n]+?\.[A-Za-z0-9]{1,10}|[^\]\n]+)\]/g)].map(m => m[1])
+    const fromEmbed   = [...bodyText.matchAll(/!([^\n!]+?\.(?:png|jpg|jpeg|gif|webp|svg|bmp|avif|heic|heif))(?:\|[^!\n]*)?!/gi)].map(m => m[1].trim())
     const attachRefs  = [...new Set([...fromBracket, ...fromEmbed])]
     if (attachRefs.length > 0) {
       try {
