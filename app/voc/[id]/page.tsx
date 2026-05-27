@@ -4,10 +4,10 @@ import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase-server'
 import { VOC_TYPE_LABEL, PRIORITY_LABEL, PRODUCT_LABEL } from '@/lib/mapping'
 import Topbar from '@/components/Topbar'
-import AttachmentList from '@/components/AttachmentList'
 import CommentForm from './CommentForm'
 import CommentItem from './CommentItem'
 import EditForm from './EditForm'
+import AttachmentEditCard from './AttachmentEditCard'
 
 const BUCKET = 'voc-attachments'
 
@@ -460,13 +460,14 @@ export default async function VocViewPage({ params, searchParams }: Props) {
             </EditForm>
           </div>
 
-          {/* ─── 참고 화면 ─── */}
-          {signedAttachments.length > 0 && (
-            <div className="card detail-card" style={{ marginBottom: 16 }}>
-              <SectionLabel>첨부 파일</SectionLabel>
-              <AttachmentList items={signedAttachments} />
-            </div>
-          )}
+          {/* ─── 첨부 파일 ─── */}
+          <AttachmentEditCard
+            vocId={row.id}
+            viewToken={token!}
+            currentStatus={row.current_status}
+            attachments={row.attachments ?? []}
+            signedAttachments={signedAttachments}
+          />
 
           {/* ─── 코멘트 ─── */}
           {(comments.length > 0 || row.jira_issue_key) && (

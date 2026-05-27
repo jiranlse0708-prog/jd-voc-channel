@@ -244,3 +244,57 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: '서버 오류가 발생했습니다.', detail: errMsg }, { status: 500 })
   }
 }
+
+/* ═══════════════════════════════════════════════════
+   PATCH — 첨부파일만 수정
+═══════════════════════════════════════════════════ */
+export async function PATCH(req: NextRequest) {
+  try {
+    const supabase = createAdminClient()
+    const body = await req.json() as {
+      vocId:        number
+      viewToken:    string
+      attachments:  AttachmentMeta[]
+      removedPaths?: string[]
+    }
+
+    const { vocId, viewToken, attachments, removedPaths } = body
+
+    const { data: row, error: dbErr } = await supabase
+      .from('voc_submission')
+      .select('id, view_token, current_status')
+      .eq('id', vocId)
+      .single()
+
+    if (dbErr || !row) {
+      return NextResponse.json({ error: '접수 건을 찾을 수 없습니다.' }, { status: 404 })
+    }
+    if (row.view_token !== viewToken) {
+      return NextResponse.json({ error: '접근 권한이 없습니다.' }, { status: 403 })
+    }
+    if (row.current_status === '완료' || row.current_status === '삭제') {
+      return NextResponse.json({ error: '완료 또는 삭제된 접수는 수정할 수 없습니다.' }, { status: 400 })
+    }
+
+    if (removedPaths && removedPaths.length > 0) {
+      const { error: rmErr } = await supabase.storage.from(BUCKET).remove(removedPaths)
+      if (rmErr) console.error('[PATCH /api/voc] Storage remove error', rmErr)
+    }
+
+    const { error: updateErr } = await supabase
+      .from('voc_submission')
+      .update({ attachments })
+      .eq('id', row.id)
+
+    if (updateErr) {
+      console.error('[PATCH /api/voc] DB update error', updateErr)
+      return NextResponse.json({ error: 'DB 수정에 실패했습니다.', detail: updateErr.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ ok: true })
+  } catch (err) {
+    const errMsg = err instanceof Error ? err.message : String(err)
+    console.error('[PATCH /api/voc]', errMsg)
+    return NextResponse.json({ error: '서버 오류가 발생했습니다.', detail: errMsg }, { status: 500 })
+  }
+}

@@ -103,8 +103,8 @@ export default function EditForm({ vocId, viewToken, currentStatus, initial, chi
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <div className="detail-section-label" style={{ margin: 0 }}>요청 정보</div>
           {canEdit && (
-            <button className="btn btn-ghost btn-sm" onClick={startEdit}>
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+            <button className="btn btn-ghost" onClick={startEdit} style={{ fontSize: 11, padding: '2px 6px', gap: 3, minHeight: 0 }}>
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none">
                 <path d="M11.5 1.5l3 3L5 14H2v-3L11.5 1.5z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
               </svg>
               수정
