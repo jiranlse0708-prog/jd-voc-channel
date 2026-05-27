@@ -262,7 +262,7 @@ export async function PATCH(req: NextRequest) {
 
     const { data: row, error: dbErr } = await supabase
       .from('voc_submission')
-      .select('id, view_token, current_status')
+      .select('id, view_token, current_status, jira_issue_key, attachments')
       .eq('id', vocId)
       .single()
 
@@ -289,6 +289,29 @@ export async function PATCH(req: NextRequest) {
     if (updateErr) {
       console.error('[PATCH /api/voc] DB update error', updateErr)
       return NextResponse.json({ error: 'DB 수정에 실패했습니다.', detail: updateErr.message }, { status: 500 })
+    }
+
+    /* ── JIRA 첨부파일 업로드 (새로 추가된 파일만) ── */
+    if (row.jira_issue_key) {
+      const existingPaths = new Set(((row.attachments as AttachmentMeta[]) ?? []).map((a: AttachmentMeta) => a.path))
+      const newlyAdded = attachments.filter(a => !existingPaths.has(a.path))
+
+      for (const a of newlyAdded) {
+        try {
+          const { data: urlData } = await supabase.storage
+            .from(BUCKET)
+            .createSignedUrl(a.path, 60)
+          if (!urlData?.signedUrl) continue
+
+          const fileRes = await fetch(urlData.signedUrl)
+          if (!fileRes.ok) continue
+          const buffer = Buffer.from(await fileRes.arrayBuffer())
+
+          await addJiraAttachment(row.jira_issue_key, a.name, buffer, a.type || 'application/octet-stream')
+        } catch (e) {
+          console.error(`[PATCH JIRA attach failed] ${a.name}:`, e)
+        }
+      }
     }
 
     return NextResponse.json({ ok: true })
