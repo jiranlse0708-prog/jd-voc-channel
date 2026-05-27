@@ -9,10 +9,11 @@ interface CommentItemProps {
   jiraCommentId:  string | null
   author:         string
   body:           string
+  editable:       boolean
   children:       React.ReactNode
 }
 
-export default function CommentItem({ vocId, viewToken, jiraCommentId, author, body, children }: CommentItemProps) {
+export default function CommentItem({ vocId, viewToken, jiraCommentId, author, body, editable, children }: CommentItemProps) {
   const [mode, setMode]         = useState<'view' | 'edit'>('view')
   const [editBody, setEditBody] = useState('')
   const [loading, setLoading]   = useState(false)
@@ -110,7 +111,7 @@ export default function CommentItem({ vocId, viewToken, jiraCommentId, author, b
 
   return (
     <div className="comment-item-wrap">
-      {jiraCommentId && (
+      {jiraCommentId && editable && (
         <div className="comment-actions">
           <button onClick={startEdit} disabled={loading}>수정</button>
           <button onClick={handleDelete} disabled={loading}>삭제</button>
