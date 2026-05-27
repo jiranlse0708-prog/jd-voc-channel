@@ -85,6 +85,9 @@ export default function CommentItem({ vocId, viewToken, jiraCommentId, author, b
   if (mode === 'edit') {
     return (
       <div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4 }}>
+          [{author}]
+        </div>
         <textarea
           className="textarea"
           value={editBody}
