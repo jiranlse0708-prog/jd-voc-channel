@@ -19,6 +19,18 @@ function skipEmail(to: string, subject: string) {
   return true
 }
 
+/** JIRA 마크업을 이메일용 평문으로 정리 */
+function cleanJiraMarkup(text: string): string {
+  return text
+    .replace(/\[~accountid:[^\]]+\]/g, '')
+    .replace(/\[~([^\]]+)\]/g, '@$1')
+    .replace(/\[\^([^\]]+)\]/g, '📎 $1')
+    .replace(/\*([^*\n]+)\*/g, '$1')
+    .replace(/_([^_\n]+)_/g, '$1')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
 /* ─── 공통 HTML 래퍼 ─── */
 function wrap(title: string, body: string) {
   return `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">
@@ -132,7 +144,7 @@ export async function sendCommentAdded(params: {
     <p style="margin:0 0 20px;font-size:14px;color:#6b7280;">${ref} · ${params.summary}</p>
     <div style="padding:16px;background:#f9fafb;border-radius:8px;border-left:3px solid #F78121;">
       <p style="margin:0 0 6px;font-size:12px;font-weight:600;color:#F78121;">${params.author}</p>
-      <p style="margin:0;font-size:14px;color:#111827;line-height:1.6;white-space:pre-wrap;">${params.commentText}</p>
+      <p style="margin:0;font-size:14px;color:#111827;line-height:1.6;white-space:pre-wrap;">${cleanJiraMarkup(params.commentText)}</p>
     </div>
     ${btn(viewUrl, '전체 내용 확인하기')}
   `
