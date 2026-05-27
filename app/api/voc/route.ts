@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-server'
-import { createJiraIssue, updateJiraIssue, addJiraAttachment, JiraAuthError } from '@/lib/jira'
+import { createJiraIssue, updateJiraIssue, addJiraAttachment, deleteJiraAttachment, JiraAuthError } from '@/lib/jira'
 import { sendSubmissionConfirm } from '@/lib/mail'
 import { VOC_TYPE_LABEL } from '@/lib/mapping'
 
@@ -8,7 +8,7 @@ export const maxDuration = 30
 
 const BUCKET = 'voc-attachments'
 
-interface AttachmentMeta { name: string; size: number; type: string; path: string }
+interface AttachmentMeta { name: string; size: number; type: string; path: string; jiraAttachmentId?: string }
 
 export async function POST(req: NextRequest) {
   try {
@@ -107,7 +107,9 @@ export async function POST(req: NextRequest) {
     }
 
     /* ── 5. JIRA 첨부파일 업로드 (Supabase에서 다운로드 후 JIRA에 업로드) ── */
-    for (const a of attachments) {
+    const updatedAttachments = [...attachments]
+    for (let i = 0; i < attachments.length; i++) {
+      const a = attachments[i]
       try {
         const { data: urlData } = await supabase.storage
           .from(BUCKET)
@@ -118,10 +120,14 @@ export async function POST(req: NextRequest) {
         if (!fileRes.ok) continue
         const buffer = Buffer.from(await fileRes.arrayBuffer())
 
-        await addJiraAttachment(jiraKey, a.name, buffer, a.type || 'application/octet-stream')
+        const jiraId = await addJiraAttachment(jiraKey, a.name, buffer, a.type || 'application/octet-stream')
+        if (jiraId) updatedAttachments[i] = { ...a, jiraAttachmentId: jiraId }
       } catch (e) {
         console.error(`[JIRA attach failed] ${a.name}:`, e)
       }
+    }
+    if (updatedAttachments.some(a => 'jiraAttachmentId' in a)) {
+      await supabase.from('voc_submission').update({ attachments: updatedAttachments }).eq('id', data.id)
     }
 
     /* ── 6. 접수 확인 이메일 ── */
@@ -291,10 +297,28 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'DB 수정에 실패했습니다.', detail: updateErr.message }, { status: 500 })
     }
 
-    /* ── JIRA 첨부파일 업로드 (새로 추가된 파일만) ── */
+    /* ── JIRA 첨부파일 동기화 ── */
     if (row.jira_issue_key) {
-      const existingPaths = new Set(((row.attachments as AttachmentMeta[]) ?? []).map((a: AttachmentMeta) => a.path))
+      const existingArr = (row.attachments as (AttachmentMeta & { jiraAttachmentId?: string })[]) ?? []
+      const existingPaths = new Set(existingArr.map(a => a.path))
+
+      /* 삭제: removedPaths 중 jiraAttachmentId가 있는 것 JIRA에서도 삭제 */
+      if (removedPaths && removedPaths.length > 0) {
+        for (const path of removedPaths) {
+          const orig = existingArr.find(a => a.path === path)
+          if (orig?.jiraAttachmentId) {
+            try {
+              await deleteJiraAttachment(orig.jiraAttachmentId)
+            } catch (e) {
+              console.error(`[PATCH JIRA delete failed] ${orig.name}:`, e)
+            }
+          }
+        }
+      }
+
+      /* 추가: 새 파일 JIRA에 업로드 + jiraAttachmentId 저장 */
       const newlyAdded = attachments.filter(a => !existingPaths.has(a.path))
+      const finalAttachments = [...attachments]
 
       for (const a of newlyAdded) {
         try {
@@ -307,10 +331,19 @@ export async function PATCH(req: NextRequest) {
           if (!fileRes.ok) continue
           const buffer = Buffer.from(await fileRes.arrayBuffer())
 
-          await addJiraAttachment(row.jira_issue_key, a.name, buffer, a.type || 'application/octet-stream')
+          const jiraId = await addJiraAttachment(row.jira_issue_key!, a.name, buffer, a.type || 'application/octet-stream')
+          if (jiraId) {
+            const idx = finalAttachments.findIndex(x => x.path === a.path)
+            if (idx >= 0) finalAttachments[idx] = { ...a, jiraAttachmentId: jiraId } as AttachmentMeta
+          }
         } catch (e) {
           console.error(`[PATCH JIRA attach failed] ${a.name}:`, e)
         }
+      }
+
+      /* jiraAttachmentId가 추가되었으면 DB 재업데이트 */
+      if (newlyAdded.length > 0) {
+        await supabase.from('voc_submission').update({ attachments: finalAttachments }).eq('id', row.id)
       }
     }
 

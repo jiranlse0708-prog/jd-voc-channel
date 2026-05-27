@@ -408,12 +408,12 @@ export async function addJiraAttachment(
   fileName: string,
   buffer:   Buffer,
   mimeType: string,
-): Promise<void> {
+): Promise<string | null> {
   if (!HOST || !EMAIL || !TOKEN) {
     throw new Error('JIRA 환경 변수가 설정되지 않았습니다.')
   }
 
-  await withRetry(async () => {
+  return await withRetry(async () => {
     const form = new FormData()
     form.append('file', new Blob([new Uint8Array(buffer)], { type: mimeType }), fileName)
 
@@ -439,6 +439,41 @@ export async function addJiraAttachment(
       const text = await res.text()
       if (res.status === 401) throw new JiraAuthError(text)
       throw new Error(`JIRA 첨부파일 업로드 실패 (${res.status}): ${text}`)
+    }
+
+    try {
+      const data = await res.json() as { id: string }[]
+      return data?.[0]?.id ?? null
+    } catch {
+      return null
+    }
+  })
+}
+
+/* ─── JIRA 첨부파일 삭제 ─── */
+export async function deleteJiraAttachment(attachmentId: string): Promise<void> {
+  if (!HOST || !EMAIL || !TOKEN) {
+    throw new Error('JIRA 환경 변수가 설정되지 않았습니다.')
+  }
+
+  await withRetry(async () => {
+    const ctrl = new AbortController()
+    const tid  = setTimeout(() => ctrl.abort(), 10000)
+    let res: Response
+    try {
+      res = await fetch(apiUrl(`/attachment/${attachmentId}`), {
+        method:  'DELETE',
+        headers: { Authorization: authHeader() },
+        signal:  ctrl.signal,
+      })
+    } finally {
+      clearTimeout(tid)
+    }
+
+    if (!res.ok && res.status !== 404) {
+      const text = await res.text()
+      if (res.status === 401) throw new JiraAuthError(text)
+      throw new Error(`JIRA 첨부파일 삭제 실패 (${res.status}): ${text}`)
     }
   })
 }
