@@ -523,7 +523,7 @@ export default async function VocViewPage({ params, searchParams }: Props) {
                           jiraCommentId={c.jira_comment_id ?? null}
                           author={c.author}
                           body={c.body}
-                          editable={c.source === 'voc-channel' || /^\[.+?\]\s/.test(c.body)}
+                          editable={c.source === 'voc-channel' || /^\*?\[.+?\]\*?\s/.test(c.body)}
                         >
                           <div style={{ fontSize: 13, color: 'var(--text-default)' }}>{renderJira(c.body, resolveAttachments(c.body, c.attachments, jiraAttachMap), jiraAccountMap)}</div>
                         </CommentItem>

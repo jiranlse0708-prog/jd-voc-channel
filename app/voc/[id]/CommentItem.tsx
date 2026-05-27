@@ -20,7 +20,7 @@ export default function CommentItem({ vocId, viewToken, jiraCommentId, author, b
   const [error, setError]       = useState<string | null>(null)
   const router = useRouter()
 
-  const rawBody = body.replace(/^\[.+?\]\s*/, '')
+  const rawBody = body.replace(/^\*?\[.+?\]\*?\s*/, '')
 
   const startEdit = () => {
     setEditBody(rawBody)
