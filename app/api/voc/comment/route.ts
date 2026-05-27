@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
       author:          authorName.trim(),
       body:            `[${authorName.trim()}] ${commentBody.trim()}`,
       created_at:      new Date().toISOString(),
+      source:          'voc-channel' as const,
     }
 
     await supabase

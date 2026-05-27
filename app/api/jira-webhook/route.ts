@@ -147,7 +147,7 @@ export async function POST(req: NextRequest) {
     }
     console.log('[webhook] matched idx:', idx, 'event:', event, 'commentId:', commentId)
     const updatedComments = idx >= 0
-      ? existing.map((c, i) => i === idx ? newComment : c)
+      ? existing.map((c, i) => i === idx ? { ...newComment, source: c.source } : c)
       : [...existing, newComment]
 
     await supabase

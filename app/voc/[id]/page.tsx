@@ -14,7 +14,7 @@ const BUCKET = 'voc-attachments'
 /* ─── 타입 ─── */
 interface Attachment { name: string; size: number; type: string; path: string }
 interface CommentAttachment { name: string; url: string }
-interface Comment    { jira_comment_id?: string; author: string; body: string; created_at: string; attachments?: CommentAttachment[] }
+interface Comment    { jira_comment_id?: string; author: string; body: string; created_at: string; attachments?: CommentAttachment[]; source?: string }
 interface VocRow {
   id:              number
   view_token:      string
@@ -523,7 +523,7 @@ export default async function VocViewPage({ params, searchParams }: Props) {
                           jiraCommentId={c.jira_comment_id ?? null}
                           author={c.author}
                           body={c.body}
-                          editable={/^\[.+?\]\s/.test(c.body)}
+                          editable={c.source === 'voc-channel' || /^\[.+?\]\s/.test(c.body)}
                         >
                           <div style={{ fontSize: 13, color: 'var(--text-default)' }}>{renderJira(c.body, resolveAttachments(c.body, c.attachments, jiraAttachMap), jiraAccountMap)}</div>
                         </CommentItem>
