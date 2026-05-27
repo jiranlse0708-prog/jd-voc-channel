@@ -435,9 +435,15 @@ export default function VocNewPage() {
       /* 접수 성공 — 드래프트 삭제 */
       localStorage.removeItem(LS.draft)
 
+      /* Supabase 업로드 실패 + JIRA 첨부 실패 합쳐 사용자에게 통지 */
+      const jiraAttachFailures = Array.isArray(data.jiraAttachFailures)
+        ? (data.jiraAttachFailures as string[])
+        : []
+      const allFailures = [...new Set([...failedUploads, ...jiraAttachFailures])]
+
       const jiraParam   = data.jiraKey ? `&jira=${data.jiraKey}` : ''
-      const failedParam = failedUploads.length
-        ? `&failedUploads=${encodeURIComponent(failedUploads.join(','))}`
+      const failedParam = allFailures.length
+        ? `&failedUploads=${encodeURIComponent(allFailures.join(','))}`
         : ''
       router.push(`/voc/complete?id=${data.id}&token=${data.viewToken}${jiraParam}${failedParam}`)
     } catch (err) {
@@ -608,9 +614,10 @@ export default function VocNewPage() {
                 <input
                   className="input"
                   value={customer}
-                  onKeyDown={e => { if (e.key === ' ') e.preventDefault() }}
-                  onChange={e => setCustomer(e.target.value.replace(/\s/g, ''))}
+                  onKeyDown={e => { if (e.key === ' ' || e.key === ',' || e.key === 'Enter') e.preventDefault() }}
+                  onChange={e => setCustomer(e.target.value.replace(/[\s,]/g, ''))}
                   placeholder="요청 고객사가 있는 경우에만 작성"
+                  maxLength={100}
                 />
               </div>
               <div>
@@ -642,6 +649,7 @@ export default function VocNewPage() {
                 value={summary}
                 onChange={e => { setSummary(e.target.value); setErrors(p => { const { summary: _, ...r } = p; return r }) }}
                 placeholder="관리자 추가 오류 확인 요청"
+                maxLength={234}
               />
               {errors.summary
                 ? <FieldError msg={errors.summary} />
@@ -658,6 +666,7 @@ export default function VocNewPage() {
                 rows={2}
                 minHeight={62}
                 placeholder="왜 이 요청을 하게 됐는지 배경을 설명해 주세요."
+                maxLength={5000}
               />
               <FieldError msg={errors.purpose} />
             </div>
@@ -677,6 +686,7 @@ export default function VocNewPage() {
                         setErrors(p => { const { screenPath: _, ...r } = p; return r })
                       }}
                       placeholder="진단 관리 > 보유 현황 > 조치 파일 목록"
+                      maxLength={500}
                     />
                     {screenPaths.length > 1 && (
                       <button
@@ -721,6 +731,7 @@ export default function VocNewPage() {
                 rows={9}
                 minHeight={200}
                 placeholder="구체적인 요구사항을 작성해주세요."
+                maxLength={10000}
               />
               <FieldError msg={errors.detail} />
             </div>

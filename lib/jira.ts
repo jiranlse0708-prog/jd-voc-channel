@@ -28,6 +28,7 @@ type AdfNode =
   | { type: 'heading'; attrs: { level: number }; content: AdfNode[] }
   | { type: 'paragraph'; content: AdfNode[] }
   | { type: 'text'; text: string; marks?: { type: string }[] }
+  | { type: 'hardBreak' }
   | { type: 'rule' }
   | { type: 'bulletList'; content: AdfNode[] }
   | { type: 'listItem'; content: AdfNode[] }
@@ -40,11 +41,17 @@ function heading(level: number, text: string): AdfNode {
   }
 }
 
-function para(...texts: string[]): AdfNode {
-  return {
-    type: 'paragraph',
-    content: texts.map(t => ({ type: 'text' as const, text: t })),
-  }
+/** 단일 문자열을 paragraph로 감싸되, 줄바꿈(\n)은 hardBreak 노드로 변환 */
+function para(text: string): AdfNode {
+  const lines = text.split('\n')
+  const content: AdfNode[] = []
+  lines.forEach((line, i) => {
+    if (i > 0) content.push({ type: 'hardBreak' })
+    if (line.length > 0) content.push({ type: 'text', text: line })
+  })
+  /* 전부 빈 줄이면 빈 paragraph가 ADF에서 거부될 수 있으므로 placeholder */
+  if (content.length === 0) content.push({ type: 'text', text: '' })
+  return { type: 'paragraph', content }
 }
 
 function labeledPara(label: string, value: string): AdfNode {

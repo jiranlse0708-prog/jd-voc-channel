@@ -157,9 +157,10 @@ export default function EditForm({ vocId, viewToken, currentStatus, initial, chi
         <div>
           <label className="field-label">요청 고객사</label>
           <input className="input" value={customer}
-            onKeyDown={e => { if (e.key === ' ') e.preventDefault() }}
-            onChange={e => setCustomer(e.target.value.replace(/\s/g, ''))}
-            placeholder="요청 고객사가 있는 경우에만" />
+            onKeyDown={e => { if (e.key === ' ' || e.key === ',' || e.key === 'Enter') e.preventDefault() }}
+            onChange={e => setCustomer(e.target.value.replace(/[\s,]/g, ''))}
+            placeholder="요청 고객사가 있는 경우에만"
+            maxLength={100} />
         </div>
         <div>
           <label className="field-label">우선순위</label>
@@ -179,28 +180,28 @@ export default function EditForm({ vocId, viewToken, currentStatus, initial, chi
       {/* 제목 */}
       <div>
         <label className="field-label">제목<span className="req">*</span></label>
-        <input className="input" value={summary} onChange={e => setSummary(e.target.value)} />
+        <input className="input" value={summary} onChange={e => setSummary(e.target.value)} maxLength={234} />
       </div>
 
       {/* 목적/배경 */}
       <div>
         <label className="field-label">목적 / 배경<span className="req">*</span></label>
         <textarea className="textarea" value={purpose} onChange={e => setPurpose(e.target.value)}
-          rows={3} style={{ resize: 'vertical', minHeight: 80 }} />
+          rows={3} style={{ resize: 'vertical', minHeight: 80 }} maxLength={5000} />
       </div>
 
       {/* 화면 경로 */}
       <div>
         <label className="field-label">화면 위치 (경로)<span className="req">*</span></label>
         <textarea className="textarea" value={screenPath} onChange={e => setScreenPath(e.target.value)}
-          rows={2} style={{ resize: 'vertical', minHeight: 60 }} />
+          rows={2} style={{ resize: 'vertical', minHeight: 60 }} maxLength={2000} />
       </div>
 
       {/* 상세 내용 */}
       <div>
         <label className="field-label">요구사항 상세<span className="req">*</span></label>
         <textarea className="textarea" value={detail} onChange={e => setDetail(e.target.value)}
-          rows={6} style={{ resize: 'vertical', minHeight: 160 }} />
+          rows={6} style={{ resize: 'vertical', minHeight: 160 }} maxLength={10000} />
       </div>
 
       {/* 에러 */}

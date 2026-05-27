@@ -37,7 +37,8 @@ export async function POST(req: NextRequest) {
       attachments = [],
     } = body
     const email = rawEmail?.toLowerCase().trim() ?? ''
-    const safeCustomer = (customer ?? '').replace(/\s/g, '')
+    /* JIRA Labels 호환: 공백·콤마·제어문자 제거 */
+    const safeCustomer = (customer ?? '').replace(/[\s,]/g, '').replace(/[\u{0}-\u{1f}]/gu, '')
 
     /* ── 2. 서버 기본 검증 ── */
     const required = { dept, name, email, product, vocType, summary, purpose, screenPath, detail }
@@ -49,6 +50,30 @@ export async function POST(req: NextRequest) {
     const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!EMAIL_RE.test(email)) {
       return NextResponse.json({ error: '이메일 형식이 올바르지 않습니다.' }, { status: 400 })
+    }
+
+    /* JIRA summary 한도: 255자 - "[VOC] [PRODUCT] " 접두사 ≈ 21자 = 234자 */
+    if (summary.length > 234) {
+      return NextResponse.json({ error: '제목은 최대 234자까지 입력 가능합니다.' }, { status: 400 })
+    }
+    if (purpose.length > 5000) {
+      return NextResponse.json({ error: '목적/배경은 최대 5,000자까지 입력 가능합니다.' }, { status: 400 })
+    }
+    if (detail.length > 10000) {
+      return NextResponse.json({ error: '요구사항 상세는 최대 10,000자까지 입력 가능합니다.' }, { status: 400 })
+    }
+    if (screenPath.length > 2000) {
+      return NextResponse.json({ error: '화면 위치는 최대 2,000자까지 입력 가능합니다.' }, { status: 400 })
+    }
+    if (safeCustomer.length > 100) {
+      return NextResponse.json({ error: '요청 고객사는 최대 100자까지 입력 가능합니다.' }, { status: 400 })
+    }
+
+    /* dueDate 형식 검증 (YYYY-MM-DD, 실제 유효 날짜) */
+    if (dueDate) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dueDate) || isNaN(new Date(dueDate).getTime())) {
+        return NextResponse.json({ error: '요청 기한 형식이 올바르지 않습니다.' }, { status: 400 })
+      }
     }
 
     /* ── 3. JIRA 이슈 생성 ── */
@@ -108,22 +133,25 @@ export async function POST(req: NextRequest) {
 
     /* ── 5. JIRA 첨부파일 업로드 (Supabase에서 다운로드 후 JIRA에 업로드) ── */
     const updatedAttachments = [...attachments]
+    const jiraAttachFailures: string[] = []
     for (let i = 0; i < attachments.length; i++) {
       const a = attachments[i]
       try {
         const { data: urlData } = await supabase.storage
           .from(BUCKET)
           .createSignedUrl(a.path, 60)
-        if (!urlData?.signedUrl) continue
+        if (!urlData?.signedUrl) { jiraAttachFailures.push(a.name); continue }
 
         const fileRes = await fetch(urlData.signedUrl)
-        if (!fileRes.ok) continue
+        if (!fileRes.ok) { jiraAttachFailures.push(a.name); continue }
         const buffer = Buffer.from(await fileRes.arrayBuffer())
 
         const jiraId = await addJiraAttachment(jiraKey, a.name, buffer, a.type || 'application/octet-stream')
         if (jiraId) updatedAttachments[i] = { ...a, jiraAttachmentId: jiraId }
+        else jiraAttachFailures.push(a.name)
       } catch (e) {
         console.error(`[JIRA attach failed] ${a.name}:`, e)
+        jiraAttachFailures.push(a.name)
       }
     }
     if (updatedAttachments.some(a => 'jiraAttachmentId' in a)) {
@@ -145,7 +173,7 @@ export async function POST(req: NextRequest) {
 
     /* ── 7. 성공 응답 ── */
     return NextResponse.json(
-      { id: data.id, viewToken: data.view_token, jiraKey },
+      { id: data.id, viewToken: data.view_token, jiraKey, jiraAttachFailures },
       { status: 201 }
     )
   } catch (err) {
@@ -180,7 +208,8 @@ export async function PUT(req: NextRequest) {
 
     const { vocId, viewToken, product, vocType, summary, customer: rawCustomer,
             priority, purpose, screenPath, detail, dueDate } = body
-    const customer = (rawCustomer ?? '').replace(/\s/g, '')
+    /* JIRA Labels 호환: 공백·콤마·제어문자 제거 */
+    const customer = (rawCustomer ?? '').replace(/[\s,]/g, '').replace(/[\u{0}-\u{1f}]/gu, '')
 
     /* ── 1. VOC 조회 + view_token 검증 ── */
     const { data: row, error: dbErr } = await supabase
@@ -204,6 +233,27 @@ export async function PUT(req: NextRequest) {
     const missing = Object.entries(required).filter(([, v]) => !v).map(([k]) => k)
     if (missing.length > 0) {
       return NextResponse.json({ error: `필수 항목 누락: ${missing.join(', ')}` }, { status: 400 })
+    }
+
+    if (summary.length > 234) {
+      return NextResponse.json({ error: '제목은 최대 234자까지 입력 가능합니다.' }, { status: 400 })
+    }
+    if (purpose.length > 5000) {
+      return NextResponse.json({ error: '목적/배경은 최대 5,000자까지 입력 가능합니다.' }, { status: 400 })
+    }
+    if (detail.length > 10000) {
+      return NextResponse.json({ error: '요구사항 상세는 최대 10,000자까지 입력 가능합니다.' }, { status: 400 })
+    }
+    if (screenPath.length > 2000) {
+      return NextResponse.json({ error: '화면 위치는 최대 2,000자까지 입력 가능합니다.' }, { status: 400 })
+    }
+    if (customer.length > 100) {
+      return NextResponse.json({ error: '요청 고객사는 최대 100자까지 입력 가능합니다.' }, { status: 400 })
+    }
+    if (dueDate) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dueDate) || isNaN(new Date(dueDate).getTime())) {
+        return NextResponse.json({ error: '요청 기한 형식이 올바르지 않습니다.' }, { status: 400 })
+      }
     }
 
     /* ── 3. DB 업데이트 ── */
